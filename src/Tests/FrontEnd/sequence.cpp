@@ -12,7 +12,7 @@ int main(int argc, char * argv[])
 	 */
 	std::shared_ptr<DetSettings> brisk_det(new BRISKdet());
 	brisk_det->setAdjustSettings(0.3,1);
-	brisk_det->setInternalSettings(25,3,1.0);
+	brisk_det->setInternalSettings(17,3,1.0);
 	
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
 	/*Configure front end
@@ -27,8 +27,7 @@ int main(int argc, char * argv[])
 	
 	bumbleBee.internalDetectionOptions_=StereoInternal::DetectionOptions::SIMPLE;
 	
-	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK|
-																						StereoInternal::RobustnessCriteria::POST_REJECTION);
+	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK);
 
 	
 	bumbleBee.internalMatch_=StereoInternal::MatchMethod::BRUTE_FORCE;
@@ -42,6 +41,7 @@ int main(int argc, char * argv[])
 	SlidingWindow mywindow_;
 	mywindow_.internalDescription_=SlidingWindow::WindowDescription::BRIEF_DESCR;
 	mywindow_.internalMatch_=SlidingWindow::WindowMatch::SIMPLE_WINDOW;
+	mywindow_.lowe_ratio_=0.8;
 	
 	mywindow_.w_width_=3;
 	

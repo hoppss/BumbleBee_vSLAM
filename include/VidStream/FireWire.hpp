@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <endian.h>
 
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
@@ -17,6 +18,7 @@
 #include "VidStream/FireWireSettings.hpp"
 /******************
  * Code adapated from Damien Douxchamps and the libdc1394 library
+ * Specially adapted to fit the BumbleBee 
  * */
 
 
@@ -37,8 +39,10 @@ namespace stereo{
 		void closeAndFreeMem();
 	public:
 		FireWire();
+		FireWire(FireWireSettings set);
 		~FireWire();
 		bool scanNewCamera(FireWireSettings &newSettings);
+		bool scanAvailableSettings(FireWireSettings &output);
 		bool singleCapture(cv::Mat &output);
 		bool singleCapture(cv::Mat &l,cv::Mat &r);
 		bool getLatestFrame(cv::Mat &l,cv::Mat &r);

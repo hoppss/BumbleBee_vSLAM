@@ -1,16 +1,8 @@
 
-#include "VidStream/FireWire.hpp"
+#include "VidStream/PointGrey.hpp"
 #include <curses.h>
 #include <stdlib.h> 
 
-
-//#include <stdio.h>
-//#include <stdint.h>
-//#include <string.h>
-//#include <inttypes.h>
-//#include <iostream>
-
-#define WIDTH 15
 
 #define LEFT_PREFIX "l"
 #define RIGHT_PREFIX "r"
@@ -24,6 +16,14 @@ int main(int argc, char * argv[])
 		std::cout<<"arg 2 = directory Prefix\n";
 		return 1;
 	}
+	
+
+	initscr();
+	cbreak();
+	nodelay(stdscr,TRUE);
+	scrollok(stdscr,TRUE);
+	noecho();
+	keypad(stdscr,TRUE);
 	
 	std::string overall_directory,file_prefix,left_dir,right_dir;
 	overall_directory=std::string(argv[1]);
@@ -45,7 +45,7 @@ int main(int argc, char * argv[])
 	std::string char_command;
 	command<<"mkdir -p "<<left_dir;
 	char_command=command.str();
-	std::cout<<command.str()<<std::endl;
+	addstr(char_command.c_str());
 	
 	system(char_command.c_str());
 	
@@ -54,25 +54,16 @@ int main(int argc, char * argv[])
 	
 	command<<"mkdir -p "<<right_dir;
 	char_command=command.str();
-		std::cout<<command.str()<<std::endl;
+	addstr(char_command.c_str());
 	system(char_command.c_str());
-	
-	std::cout<<"Directories Created\n";
-	
-	
-	
-	
-	
-	initscr();
-	cbreak();
-	nodelay(stdscr,TRUE);
-	scrollok(stdscr,TRUE);
-	noecho();
-	keypad(stdscr,TRUE);
-	
-	stereo::FireWire bumbleBee;
+
+	stereo::PointGrey bumbleBee;
+	bumbleBee.n_buffer=24;
 	cv::Mat left,right;
 	bool run=true;
+	
+	bumbleBee.dcinit();
+	bumbleBee.updateSettings();
 	
 	if(bumbleBee.openStream())
 	{
@@ -85,8 +76,15 @@ int main(int argc, char * argv[])
 		 */
 		std::stringstream msg_;
 		std::string char_msgs_;
+		int frame=0;
 		while(run)
 		{
+			if(frame>=15)
+			{
+				addstr("Press F3 to stop Recording\n");
+				frame=0;
+			}
+			++frame;
 			if(bumbleBee.getLatestFrame(left,right,stamp))
 			{
 				/*
@@ -97,11 +95,6 @@ int main(int argc, char * argv[])
 				
 				r_fname.str("");
 				r_fname<<right_dir<<"r_"<<stamp<<".ppm";
-				
-				msg_.str("");
-				msg_<<stamp<<std::endl;
-				char_msgs_=msg_.str();
-				addstr(char_msgs_.c_str());
 				/*
 				 * save images
 				 */
@@ -118,19 +111,13 @@ int main(int argc, char * argv[])
 			if(pressed_key==KEY_F(3))
 			{
 					run=false;
-					bumbleBee.streamStop();
+					bumbleBee.closeStream();
 					addstr("Exiting Recording Loop");
 			}
 			refresh();
 		}
 		endwin();
 	}
-
-
-		//	printw("Current Frame = %d\t, directory = %s\n",frame_number,output_file_name.c_str());
-		//	frame_number++;
-		//	refresh();
- // }
 	
 	return 1;
 }

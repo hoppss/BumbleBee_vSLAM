@@ -7,9 +7,21 @@ FireWire::FireWire()
 	//default constructor, scans camera and creates Settings
 	FireWireSettings Ans;
 	scanNewCamera(Ans);
-	
-	
 }
+
+FireWire::FireWire(FireWireSettings set)
+{
+
+}
+
+
+bool FireWire::scanAvailableSettings(FireWireSettings& output)
+{
+
+}
+
+
+
 
 
 bool FireWire::scanNewCamera(FireWireSettings &newSettings)
@@ -33,9 +45,7 @@ bool FireWire::scanNewCamera(FireWireSettings &newSettings)
 					camera = dc1394_camera_new(init_1394, list->ids[0].guid);
 					if(camera)
 					{
-						
-						
-						printf("Using camera with GUID %"PRIx64"\n", camera->guid);
+
 						
 						dc1394featureset_t temp;
 						dc1394_feature_get_all(camera,&temp);

@@ -15,3 +15,6 @@ target_link_libraries(SaveCalibrationImages VidStream)
 
 add_executable(CreateDataSet CreateDataSet.cpp)
 target_link_libraries(CreateDataSet VidStream ncurses)
+
+add_executable(FireWireSettings makeFireWireSettings.cpp)
+target_link_libraries(FireWireSettings VidStream ${BUILD_CV_LIB})
