@@ -41,7 +41,15 @@ else()
 	set(BUILD_CV_LIB ${OpenCV_LIBRARIES})
 endif()
 
+find_package(DC1394 REQUIRED)
+
+
+
+
+
 include_directories(${BUILD_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
+MESSAGE("${DC1394_LIB_DIR}")
+link_directories(${DC1394_LIB_DIR})
 
 add_subdirectory(src)
