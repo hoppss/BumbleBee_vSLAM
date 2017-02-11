@@ -40,83 +40,7 @@ bool FireWire::scanNewCamera(FireWireSettings &newSettings)
 						dc1394_feature_get_all(camera,&temp);
 						
 						firewireSetup(newSettings);
-					//	newSettings.printAvailable(temp);
-						
-						
-			//				int TotalFeatures;
-	//TotalFeatures=sizeof(temp)/sizeof(dc1394feature_info_t);
-//	std::cout<<"features det "<<TotalFeatures<<std::endl;
 
-					
-				/*		printf("Using camera with GUID %"PRIx64"\n", camera->guid);
-						
-						dc1394bool_t a ;
-						std::cout<<"found "<<a<<std::endl;
-						dc1394_feature_is_present(camera,DC1394_FEATURE_BRIGHTNESS,&a);
-						std::cout<<"found "<<a<<std::endl;
-						
-						dc1394feature_info_t b;
-						dc1394_feature_get(camera,&b);
-						
-						dc1394_feature_print(&b,ptr);*/
-
-						//newSettings.features_set.
-						
-		/*				
-						typedef struct __dc1394feature_info_t_struct
-{
-    dc1394feature_t    id;
-    dc1394bool_t       available;
-    dc1394bool_t       absolute_capable;
-    dc1394bool_t       readout_capable;
-    dc1394bool_t       on_off_capable;
-    dc1394bool_t       polarity_capable;
-    dc1394switch_t     is_on;
-    dc1394feature_mode_t     current_mode;
-    dc1394feature_modes_t    modes;
-    dc1394trigger_modes_t    trigger_modes;
-    dc1394trigger_mode_t     trigger_mode;
-    dc1394trigger_polarity_t trigger_polarity;
-    dc1394trigger_sources_t  trigger_sources;
-    dc1394trigger_source_t   trigger_source;
-    uint32_t           min;
-    uint32_t           max;
-    uint32_t           value;
-    uint32_t           BU_value;
-    uint32_t           RV_value;
-    uint32_t           B_value;
-    uint32_t           R_value;
-    uint32_t           G_value;
-    uint32_t           target_value;
-
-    dc1394switch_t     abs_control;
-    float              abs_value;
-    float              abs_max;
-    float              abs_min;
-
-} dc1394feature_info_t;
-						*/
-						
-						
-						//brightness etc...
-
-						/*err=dc1394_video_set_iso_speed(camera, DC1394_ISO_SPEED_400);
-						std::cout<<"ISO SPEED 400 -- "<<dc1394_error_get_string(err)<<std::endl;
-						err=dc1394_video_set_mode(camera, DC1394_VIDEO_MODE_1024x768_MONO16);
-						std::cout<<"MODE set 1024x768 MONO16 -- "<<dc1394_error_get_string(err)<<std::endl;
-						err=dc1394_video_set_framerate(camera, DC1394_FRAMERATE_15);
-						std::cout<<"15 FPS -- "<<dc1394_error_get_string(err)<<std::endl;
-						err=dc1394_capture_setup(camera,1, DC1394_CAPTURE_FLAGS_DEFAULT);
-						std::cout<<"capture setup -- "<<dc1394_error_get_string(err)<<std::endl;
-						bayerImage=cv::Mat(1536,1024,CV_8UC1);
-						outputImage=cv::Mat(1536,1024,CV_8UC1);
-						
-						
-						left_img=outputImage(cv::Rect(0,768,1024,768));
-						right_img=outputImage(cv::Rect(0,0,1024,768));
-						
-						
-						initialized_=true;*/
 					}
 				}
 				dc1394_camera_free_list (list);
@@ -130,11 +54,22 @@ bool FireWire::scanNewCamera(FireWireSettings &newSettings)
 	return Error_;
 }
 
+FireWire::~FireWire()
+{
+	closeAndFreeMem();
+}
+
+
 bool FireWire::firewireSetup(FireWireSettings set)
 {
 	bool ans=true;
 	dc1394error_t brightness,exposure,white_balance,shutter,gain,trigger; //features set
 	dc1394error_t speed,mode,framerate,capture_setup;
+	
+	bayerImage=cv::Mat(1536,1024,CV_8UC1);
+	outputImage=cv::Mat(1536,1024,CV_8UC1);
+	left_img=outputImage(cv::Rect(0,768,1024,768));
+	right_img=outputImage(cv::Rect(0,0,1024,768));
 
 	speed=dc1394_video_set_iso_speed(camera, set.iso_speed);
 	mode=dc1394_video_set_mode(camera,set.video_mode);
@@ -176,12 +111,99 @@ bool FireWire::firewireSetup(FireWireSettings set)
 }
 
 
-
-void FireWire::defaultSetup()
+bool FireWire::singleCapture(cv::Mat& output)
 {
-
-		
+	bool Success=false;
+	dc1394video_frame_t * tempFrame;	
+	if(openStream())
+	{
+		dc1394error_t err=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&tempFrame);
+		if(err==DC1394_SUCCESS)
+		{
+					//check for frame corruption
+					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
+					{
+							convertToMat(tempFrame,output);
+					}
+		}
+		err=dc1394_capture_enqueue(camera,tempFrame);
+		streamStop();	
+	}
+	
+	return Success;
 }
+
+void FireWire::convertToMat(dc1394video_frame_t * src,cv::Mat &dest)
+{
+	dc1394video_frame_t stereo_frame;
+	memcpy(&stereo_frame,src,sizeof(dc1394video_frame_t)); //copy MetaData
+	stereo_frame.allocated_image_bytes=0;
+	stereo_frame.image=NULL;
+
+	dc1394_deinterlace_stereo_frames(src,&stereo_frame,DC1394_STEREO_METHOD_INTERLACED);
+	//convert images to individual ones, left image on bottom, right image on the top
+
+	short int * d_pt;
+ 	short int * s_pt;
+
+	d_pt=(short int*)&bayerImage.data[0];
+	s_pt=(short int*)&stereo_frame.image[0];
+	memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
+	cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
+	dest=outputImage;
+}
+
+
+
+
+bool FireWire::openStream()
+{
+	
+	dc1394error_t err=dc1394_video_set_transmission(camera,DC1394_ON);
+	std::cout<<"TRANSMISSION -- "<<dc1394_error_get_string(err)<<std::endl;
+	if(err==DC1394_SUCCESS)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+
+}
+
+bool FireWire::streamStop()
+{
+	dc1394error_t err=	dc1394_video_set_transmission(camera,DC1394_OFF);
+	if(err==DC1394_SUCCESS)
+	{
+		std::cout<<"Camera Transmission stopped\n";
+		return true;
+	}
+	else
+	{
+		std::cerr<<"Cannot stop transmission -error- "<<dc1394_error_get_string(err)<<std::endl;	
+		return false;
+	}
+}
+
+void FireWire::closeAndFreeMem()
+{
+	dc1394error_t capture;
+	
+	capture=dc1394_capture_stop(camera);
+	dc1394_camera_free(camera);
+	dc1394_free(init_1394);
+	
+	
+	if(capture!=DC1394_SUCCESS)
+	{
+		std::cerr<<"Cannot stop capture -error- "<<dc1394_error_get_string(capture)<<std::endl;	
+	}
+
+}
+
+
 
 
 	

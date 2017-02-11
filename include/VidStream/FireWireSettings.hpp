@@ -15,7 +15,7 @@ namespace stereo
 		private:
 			std::string printMode(dc1394feature_mode_t mod);
 		public:
-			FireWireSettings();	
+			FireWireSettings();
 			dc1394speed_t iso_speed;
 			dc1394framerate_t frame_rate;
 			dc1394video_mode_t video_mode;

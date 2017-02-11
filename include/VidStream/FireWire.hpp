@@ -11,6 +11,8 @@
 #include <unistd.h>
 #endif
 
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "VidStream/FireWireSettings.hpp"
 /******************
@@ -28,22 +30,22 @@ namespace stereo{
 		bool initialized_;
 		//Video Global Variables
  		dc1394video_frame_t * latest_frame;
-		dc1394video_frame_t stereo_frame;
-	//	cv::Mat left_img,right_img;
-	//	cv::Mat outputImage,bayerImage;
-		void cleanup_and_exit(dc1394camera_t *camera);
-		void clearFrame();
-		int img_width_,img_height_;
+		
+		cv::Mat left_img,right_img;
+		cv::Mat bayerImage,outputImage;;
 		bool openStream();
-		void defaultSetup();
 		bool firewireSetup(FireWireSettings set);
+		void convertToMat(dc1394video_frame_t * src,cv::Mat &dest);
+		void closeAndFreeMem();
 	public:
 		FireWire();
+		~FireWire();
 		FireWire(std::string config_dir);
 		void streamPause();
 	//	bool getLatestImage(cv::Mat &fin);
-		void streamStop(bool close);
 		bool scanNewCamera(FireWireSettings &newSettings);
+		bool singleCapture(cv::Mat &output);
+		bool streamStop();
 	};
 	
 }
