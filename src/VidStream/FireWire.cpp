@@ -123,7 +123,8 @@ bool FireWire::singleCapture(cv::Mat& output)
 					//check for frame corruption
 					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
 					{
-							convertToMat(tempFrame,output);
+							convertToMat(tempFrame);
+							output=outputImage;
 					}
 		}
 		err=dc1394_capture_enqueue(camera,tempFrame);
@@ -133,7 +134,34 @@ bool FireWire::singleCapture(cv::Mat& output)
 	return Success;
 }
 
-void FireWire::convertToMat(dc1394video_frame_t * src,cv::Mat &dest)
+bool FireWire::singleCapture(cv::Mat& l, cv::Mat& r)
+{
+	bool Success=false;
+	dc1394video_frame_t * tempFrame;	
+	if(openStream())
+	{
+		dc1394error_t err=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&tempFrame);
+		if(err==DC1394_SUCCESS)
+		{
+					//check for frame corruption
+					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
+					{
+							convertToMat(tempFrame);
+							l=left_img;
+							r=right_img;
+					}
+		}
+		err=dc1394_capture_enqueue(camera,tempFrame);
+		streamStop();	
+	}
+	
+	return Success;
+}
+
+
+
+
+void FireWire::convertToMat(dc1394video_frame_t * src)
 {
 	dc1394video_frame_t stereo_frame;
 	memcpy(&stereo_frame,src,sizeof(dc1394video_frame_t)); //copy MetaData
@@ -150,7 +178,6 @@ void FireWire::convertToMat(dc1394video_frame_t * src,cv::Mat &dest)
 	s_pt=(short int*)&stereo_frame.image[0];
 	memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
 	cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
-	dest=outputImage;
 }
 
 
@@ -203,8 +230,37 @@ void FireWire::closeAndFreeMem()
 
 }
 
-
-
-
+bool FireWire::getLatestFrame(cv::Mat& l, cv::Mat& r)
+{
+	bool Success=true;
+	dc1394video_frame_t * tempFrame;
+	dc1394error_t deque,enque;
 	
+	
+	deque=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&tempFrame);
+	if(deque==DC1394_SUCCESS)
+		{
+					//check for frame corruption
+					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
+					{
+							convertToMat(tempFrame);
+							l=left_img;
+							r=right_img;
+					}
+					else
+					{
+						Success=false;
+						std::cerr<<"Frame corrupt -error- \n";
+					}
+		}
+	enque=dc1394_capture_enqueue(camera,tempFrame);
+	if(enque!=DC1394_SUCCESS)
+	{
+		std::cerr<<"Enque -error- "<<dc1394_error_get_string(enque)<<std::endl;	
+		Success=false;
+	}
+	return Success;
+}
+
+
 }

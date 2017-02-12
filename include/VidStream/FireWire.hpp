@@ -30,22 +30,20 @@ namespace stereo{
 		bool initialized_;
 		//Video Global Variables
  		dc1394video_frame_t * latest_frame;
-		
 		cv::Mat left_img,right_img;
 		cv::Mat bayerImage,outputImage;;
-		bool openStream();
 		bool firewireSetup(FireWireSettings set);
-		void convertToMat(dc1394video_frame_t * src,cv::Mat &dest);
+		void convertToMat(dc1394video_frame_t * src);
 		void closeAndFreeMem();
 	public:
 		FireWire();
 		~FireWire();
-		FireWire(std::string config_dir);
-		void streamPause();
-	//	bool getLatestImage(cv::Mat &fin);
 		bool scanNewCamera(FireWireSettings &newSettings);
 		bool singleCapture(cv::Mat &output);
+		bool singleCapture(cv::Mat &l,cv::Mat &r);
+		bool getLatestFrame(cv::Mat &l,cv::Mat &r);
 		bool streamStop();
+		bool openStream();
 	};
 	
 }
