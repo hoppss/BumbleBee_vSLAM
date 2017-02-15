@@ -1,6 +1,7 @@
 
 add_library(Calibration  
 	Calibrator.cpp
+	SingleOutput.cpp
 	)
 	
 target_link_libraries(Calibration  

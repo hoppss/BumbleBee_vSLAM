@@ -2,10 +2,6 @@
 #define CAMERA_INFO_SINGLE_HEADER_HPP
 
 #include "DataStructures/Transforms/Isometry.hpp"
-#include <opencv2/core.hpp>
-#include <opencv2/calib3d.hpp>
-
-
 namespace stereo {
 
 class Single

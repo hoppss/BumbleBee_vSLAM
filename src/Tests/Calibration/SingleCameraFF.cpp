@@ -1,10 +1,31 @@
-#include "Calibration/Calibrator.hpp"
+#include "Calibration/SingleOutput.hpp"
 #include <bitset>
 
 void printExpectedArgs();
 
 int main(int argc, char * argv[])
 {
+	using namespace stereo;
+	std::string in="/media/ubuntu/SD_CARD/calibration/left";
+	std::string  out="output";
+	std::string deb="debug";
+	std::string pref="file_";
+	bool fullDebug=true;
+	int patternsize_rows=12;
+	int patternsize_cols=10;
+	int squareSize=37;
+	int un=SingleOutput::mm;
+	
+
+	SingleOutput left;
+	
+	left.setMetaData(pref,out,deb);
+	
+	int debugConf=SingleOutput::displayNotFound|SingleOutput::displayOut|SingleOutput::saveFound|SingleOutput::saveNotFound|SingleOutput::debugInfo;
+	
+	std::cout<<"debug info- "<<std::bitset<6>(debugConf)<<std::endl;
+	left.calibrateCamera(in,patternsize_rows,patternsize_cols,squareSize,un,debugConf);
+	
 	
 	/*
 	 * Note : This assumes directories are already in place,

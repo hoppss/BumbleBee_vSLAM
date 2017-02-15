@@ -10,11 +10,11 @@ target_link_libraries(CalibrateFromFile
 	Calibration
 )
 
-#target_include_directories(OverallTest PUBLIC
-#		${BUILD_INCLUDE_DIR}
-#		)
 
-#target_include_directories(OverallTest PUBLIC
-#	${BUILD_INCLUDE_DIR}
-#	)
-	#	targ
+add_executable(SingleCalibrateFromFile
+	SingleCameraFF.cpp
+	)
+	
+target_link_libraries(SingleCalibrateFromFile
+	Calibration
+)
