@@ -9,7 +9,7 @@ Calibrator::Calibrator()
 }
 
 
-bool Calibrator::calibrate(std::string mainDir, std::vector< cv::Mat >& inputImages, std::vector< cv::Mat >& outputImages, double& rms,int row,int col, int size)
+bool Calibrator::calibrate(std::string mainDir, std::vector< cv::Mat >& inputImages, std::vector< cv::Mat >& outputImages,cv::Mat &K,cv::Mat &D, double& rms,int row,int col, int size)
 {
 	bool Success;
 	cv::Size board(row-1,col-1);
@@ -25,9 +25,10 @@ bool Calibrator::calibrate(std::string mainDir, std::vector< cv::Mat >& inputIma
 	{		
 		calibration_size=inputImages.at(0).size();
 		
+		std::cout<<"Image processing Progress -- \n";
 		for(int imageIndex=0;imageIndex<inputImages.size();imageIndex++)
 		{
-			
+			std::cout<<"["<<(imageIndex+1)<<"/"<<inputImages.size()<<"]\n";
 			if(debugInfo)
 			{
 				std::cout<<"Find corners for image "<<imageIndex<<std::endl;
@@ -52,16 +53,19 @@ bool Calibrator::calibrate(std::string mainDir, std::vector< cv::Mat >& inputIma
 				}
 				else
 				{
-				std::cout<<"no chessboard found for image with index = " <<imageIndex<<std::endl;
-				}			
-	}
-
-	//		double rms_temp;
-	//		cv::Mat tempK,tempD;
-	//		std::vector<cv::Mat> tempR,tempT;
-			
-	//		rms_temp=cv::calibrateCamera(genBoardPoints(board,squareSize,left_images.size()),leftCorners,calibration_size,tempK,tempD,tempR,tempT,CV_CALIB_RATIONAL_MODEL);
-			
+					std::cout<<"no chessboard found for image with index = " <<imageIndex<<std::endl;
+					if(showNotFound)
+					{
+						cv::namedWindow("NotFound",cv::WINDOW_NORMAL);
+						cv::imshow("NotFound",inputImages.at(imageIndex));
+						cv::waitKey(0);	
+						cv::destroyWindow("NotFound");
+					}
+				}	
+		}			
+		double rms_temp;
+		std::vector<cv::Mat> tempR,tempT;
+		rms=cv::calibrateCamera(genBoardPoints(board,size,outputImages.size()),corners,calibration_size,K,D,tempR,tempT,CV_CALIB_RATIONAL_MODEL);
 			
 		
 		
@@ -79,11 +83,18 @@ bool Calibrator::calibrate(std::string mainDir, std::vector< cv::Mat >& inputIma
 
 Single Calibrator::calibrateCamera(std::string mainDir,int row,int col, int size)
 {
+	debugInfo=false;
+	showNotFound=false;
+	
 	Single Ans;
 	std::vector< cv::Mat > in,out;
+	cv::Mat k,d;
 	double rms;
-	if(calibrate(mainDir,in,out,rms,row,col,size))
+	if(calibrate(mainDir,in,out,k,d,rms,row,col,size))
 	{
+		k.copyTo(Ans.K_);
+		d.copyTo(Ans.K_dist_);
+		Ans.RMS_Error=rms;
 	}
 	
 	return Ans;
@@ -102,20 +113,46 @@ Single Calibrator::calibrateCamera(std::string mainDir, int config,std::string o
 	{
 		debugInfo=false;
 	}
+	if(config&displayNotFound)
+	{
+		showNotFound=true;
+	}
+	else
+	{
+		showNotFound=false;
+	}
+	
 	
 	Single Ans;
 	std::vector< cv::Mat > in,out;
+	cv::Mat k,d;
 	double rms;
 	
-	if(calibrate(mainDir,in,out,rms,row,col,size))
+	if(calibrate(mainDir,in,out,k,d,rms,row,col,size))
 	{
+		k.copyTo(Ans.K_);
+		d.copyTo(Ans.K_dist_);
+		Ans.RMS_Error=rms;
 		
 		if(displayBoards&config)
 		{
 			displayImg(out);
 		}
+		if(config&saveFoundBoards)
+		{
+			std::string overall;
+			overall=output;
+			overall+="/Found/found_";
+			std::cout<<"Saving found patterns to "<<overall<<std::endl;
+			
+			for(int ind=0;ind<out.size();ind++)
+			{
+				std::stringstream dir;
+				dir<<overall<<ind<<".ppm";
+				cv::imwrite(dir.str(),out.at(ind));
+			}
+		}
 	}
-	
 	return Ans;
 }
 
@@ -181,6 +218,29 @@ void Calibrator::displayImg(std::vector< cv::Mat > img)
 			cv::waitKey(0);	
 	}
 	cv::destroyWindow("output");
+}
+
+std::vector< std::vector< cv::Vec3f > > Calibrator::genBoardPoints(cv::Size board, int square_size,int PatternViews)
+{
+	std::vector< std::vector< cv::Vec3f > > Ans;
+	
+	for(int pattern=0;pattern<PatternViews;pattern++)
+	{
+		std::vector< cv::Vec3f > singleBoard;
+		for(int row=0;row<board.height;row++)
+		{
+			for(int col=0;col<board.width;col++)
+			{
+				cv::Vec3f tempPoint;
+				tempPoint[0]=col*square_size;
+				tempPoint[1]=row*square_size;
+				tempPoint[2]=0;
+				singleBoard.push_back(tempPoint);
+			}
+		}
+		Ans.push_back(singleBoard);
+	}
+	return Ans;
 }
 
 

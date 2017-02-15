@@ -5,6 +5,12 @@ void printExpectedArgs();
 
 int main(int argc, char * argv[])
 {
+	
+	/*
+	 * Note : This assumes directories are already in place,
+	 * i.e if the input and output directories dont exist for the images, they wont be created
+	 * and thus nothing will be saved
+	 * */
 	using namespace stereo;
 	Calibrator cal;
 	Single l_,r_;
@@ -31,7 +37,7 @@ int main(int argc, char * argv[])
 	
 	int config;
 	
-	config=(displayBoards|saveFoundBoards|debugLeft|debugRight|debugOutput);
+	config=(saveFoundBoards|debugLeft|debugRight);
 		
 	std::cout<<"config --\n";
 	std::cout<<"input directory - "<<in<<std::endl;
@@ -40,10 +46,28 @@ int main(int argc, char * argv[])
 	
 	//calibrate the left camera
 	std::string fullcam_dir;
+	std::string fulloutput_dir;
+	
 	fullcam_dir=in;
 	fullcam_dir+="/left";
+	
+	fulloutput_dir=out;
+	fulloutput_dir+="/left";
 
-	l_=cal.calibrateCamera(fullcam_dir,config,out,patternsize_rows,patternsize_cols,squareSize);
+	l_=cal.calibrateCamera(fullcam_dir,config,fulloutput_dir,patternsize_rows,patternsize_cols,squareSize);
+
+	//calibrate the right camera
+	fullcam_dir=in;
+	fullcam_dir+="/right";
+	
+	fulloutput_dir=out;
+	fulloutput_dir+="/right";
+	
+	r_=cal.calibrateCamera(fullcam_dir,config,fulloutput_dir,patternsize_rows,patternsize_cols,squareSize);
+
+	
+	
+	
 	
 	
 	

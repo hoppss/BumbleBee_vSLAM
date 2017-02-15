@@ -7,6 +7,7 @@ Single::Single()
 {
 		RMS_Error=-1;
 		iso_.setIdentity();
+		//NOTE  k and D are not set, error will occur if referenced 
 }
 
 Single::Single(cv::Mat k,cv::Mat dist,Isometry is)

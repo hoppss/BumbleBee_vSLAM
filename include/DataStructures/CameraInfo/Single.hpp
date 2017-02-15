@@ -31,6 +31,7 @@ class Single
 
 	protected:
 				friend class Stereo;
+				friend class Calibrator;
 				friend class StereoCamera;
 
 };
