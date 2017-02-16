@@ -26,7 +26,8 @@ class SingleOutput
 		//metadata
 		int debugConfiguration;
 		std::string file_prefix;
-		std::string main_dir;
+		std::string inputDir;
+		std::string outputDir;
 		std::string output_folder;
 		std::string debug_folder;
 		int board_row,board_column;
@@ -37,7 +38,7 @@ class SingleOutput
 		///////data
 		std::vector<cv::Mat> inputImages,outputImages;
 		std::vector< std::vector<cv::Point2f> > foundCorners;
-		int rms_meas;
+		double rms_meas;
 		cv::Mat measured_k;
 		cv::Mat measured_d;
 		cv::Size calibration_size;
@@ -49,8 +50,12 @@ class SingleOutput
 		bool getImageList(std::string mainDir);
 		void genFeatures();
 		void clearInternals();
-		void findImageFeature(cv::Mat img);
+		void findImageFeature(cv::Mat img,std::string fname);
 		void createDir(std::string dir);
+		void setDirectories(std::string in,std::string out);
+		std::vector< std::vector< cv::Vec3f > > generateCheckBoardCoord();
+		
+	//	std::vector< std::vector< cv::Vec3f > > genBoardPoints(cv::Size board, int square_size,int PatternViews);
 	public:
 		enum SingleOutputDEBUG
 		{
@@ -68,8 +73,9 @@ class SingleOutput
 		};
 		SingleOutput();
 		void setMetaData(std::string file,std::string output,std::string debug);
-		bool calibrateCamera(std::string mainDir,int row,int col, int size,int un);
-		bool calibrateCamera(std::string mainDir,int row,int col, int size,int un,int conf);
+		bool calibrateCamera(std::string mainDir,std::string outputDir,int row,int col, int size,int un);
+		bool calibrateCamera(std::string mainDir,std::string outputDir,int row,int col, int size,int un,int conf);
+		void printConfig();
 	
 };
 

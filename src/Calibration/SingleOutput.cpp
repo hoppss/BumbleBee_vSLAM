@@ -35,17 +35,27 @@ bool SingleOutput::calibrate()
 
 }
 
-bool SingleOutput::calibrateCamera(std::string mainDir, int row, int col, int size, int un)
+bool SingleOutput::calibrateCamera(std::string mainDir,std::string outputDir, int row, int col, int size, int un)
 {
 	debugConfiguration=0;
 	board_row=row;
 	board_column=col;
 	size_square=size;
 	unit=un;
+	setDirectories(mainDir,outputDir);
 	printDebugConfig();
 }
 
-bool SingleOutput::calibrateCamera(std::string mainDir, int row, int col, int size, int un, int conf)
+void SingleOutput::setDirectories(std::string in, std::string out)
+{
+	std::stringstream dir;
+	dir<<out<<"/"<<output_folder;
+	inputDir=in;
+	outputDir=dir.str();
+}
+
+
+bool SingleOutput::calibrateCamera(std::string mainDir,std::string outputDir, int row, int col, int size, int un, int conf)
 {
 	clearInternals();
 	bool Success;
@@ -54,10 +64,12 @@ bool SingleOutput::calibrateCamera(std::string mainDir, int row, int col, int si
 	board_column=col;
 	size_square=size;
 	unit=un;
+	setDirectories(mainDir,outputDir);
 	printDebugConfig();
 	if(getImageList(mainDir))
 	{
 		genFeatures();
+		printConfig();
 		Success=true;
 	}
 	else
@@ -68,7 +80,7 @@ bool SingleOutput::calibrateCamera(std::string mainDir, int row, int col, int si
 	return Success;
 }
 
-void SingleOutput::findImageFeature(cv::Mat img)
+void SingleOutput::findImageFeature(cv::Mat img,std::string fname)
 {
 	std::stringstream err;
 	bool found;
@@ -76,7 +88,7 @@ void SingleOutput::findImageFeature(cv::Mat img)
 	
 	found=cv::findChessboardCorners(img,
 																	internalBoardSize,imageCorners,
-																 cv::CALIB_CB_ADAPTIVE_THRESH|cv::CALIB_CB_NORMALIZE_IMAGE|cv::CALIB_CB_FILTER_QUADS);
+																 cv::CALIB_CB_ADAPTIVE_THRESH|cv::CALIB_CB_NORMALIZE_IMAGE);
 	err<<"found checkerboard==" <<found;
 	debugOut(err.str());
 	
@@ -97,7 +109,13 @@ void SingleOutput::findImageFeature(cv::Mat img)
 			}
 			if(debugConfiguration&saveFound)
 			{
-				std::stringstream ss;
+				std::stringstream pic_dir;
+				pic_dir<<outputDir<<"/"<<debug_folder<<"/Found/"<<file_prefix<<fname;
+				err.clear();
+				err<<"\tsaving \t"<<pic_dir.str();
+				debugOut(err.str());
+				
+				cv::imwrite(pic_dir.str(),output);
 			}
 			
 	}
@@ -105,14 +123,21 @@ void SingleOutput::findImageFeature(cv::Mat img)
 	{
 			if(debugConfiguration&displayNotFound)
 			{
+				
 				cv::namedWindow("notFound",CV_WINDOW_NORMAL);
 				cv::imshow("notFound",img);
 			}
 			if(debugConfiguration&saveNotFound)
 			{
+				std::stringstream pic_dir;
+				pic_dir<<outputDir<<"/"<<debug_folder<<"/NotFound/"<<file_prefix<<fname;
+				err.clear();
+				err<<"\tsaving \t"<<pic_dir.str();
+				debugOut(err.str());
+				
+				cv::imwrite(pic_dir.str(),img);
 			}
 	}
-	
 	if((debugConfiguration&displayNotFound)||(debugConfiguration&displayOut))
 	{
 		cv::waitKey(0);
@@ -133,6 +158,31 @@ void SingleOutput::createDir(std::string dir)
 	system(a.c_str());
 }
 
+std::vector< std::vector< cv::Vec3f > > SingleOutput::generateCheckBoardCoord()
+{
+	std::vector< std::vector< cv::Vec3f > > Ans;
+	
+	for(int pattern=0;pattern<outputImages.size();pattern++)
+	{
+		std::vector< cv::Vec3f > singleBoard;
+		for(int row=0;row<internalBoardSize.height;row++)
+		{
+			for(int col=0;col<internalBoardSize.width;col++)
+			{
+				cv::Vec3f tempPoint;
+				tempPoint[0]=col*size_square;
+				tempPoint[1]=row*size_square;
+				tempPoint[2]=0;
+				singleBoard.push_back(tempPoint);
+			}
+		}
+		Ans.push_back(singleBoard);
+	}
+	return Ans;
+
+}
+
+
 
 
 void SingleOutput::genFeatures()
@@ -144,36 +194,15 @@ void SingleOutput::genFeatures()
 	for(int imageIndex=0;imageIndex<inputImages.size();imageIndex++)
 		{
 			std::cout<<indivNames.at(imageIndex)<<" -- ["<<(imageIndex+1)<<"/"<<inputImages.size()<<"]\t";
-			findImageFeature(inputImages.at(imageIndex));
-			
-			
-				/*found=cv::findChessboardCorners(inputImages.at(imageIndex),board,tempCorners,cv::CALIB_CB_ADAPTIVE_THRESH|cv::CALIB_CB_NORMALIZE_IMAGE|cv::CALIB_CB_FILTER_QUADS);
-				if(found)
-				{
-					if(debugInfo)
-					{
-						std::cout<<"Corners Found "<<imageIndex<<std::endl;
-					}
-					corners.push_back(tempCorners);
-					//draw chessboard on image and save it
-					cv::Mat output;
-					cv::cvtColor(inputImages.at(imageIndex),output,cv::COLOR_GRAY2BGR);
-					cv::drawChessboardCorners(output,board,tempCorners,true);
-					outputImages.push_back(output);
-				}
-				else
-				{
-					std::cout<<"no chessboard found for image with index = " <<imageIndex<<std::endl;
-					if(showNotFound)
-					{
-						cv::namedWindow("NotFound",cv::WINDOW_NORMAL);
-						cv::imshow("NotFound",inputImages.at(imageIndex));
-						cv::waitKey(0);	
-						cv::destroyWindow("NotFound");
-					}
-				}	
-	*/
+			findImageFeature(inputImages.at(imageIndex),indivNames.at(imageIndex));
 		}
+
+	std::vector<cv::Mat> tempR,tempT;
+	rms_meas=cv::calibrateCamera(generateCheckBoardCoord(),foundCorners,calibration_size,measured_k,measured_d,tempR,tempT,CV_CALIB_RATIONAL_MODEL);
+	
+	std::stringstream err;
+	err<<"Rms Error of calibration : "<<rms_meas;
+	debugOut(err.str());
 }
 
 void SingleOutput::printDebugConfig()
@@ -233,7 +262,6 @@ bool SingleOutput::getImageList(std::string mainDir)
 			
 			if(!reject)//gets rid of the .  and .. directories
 			{
-				
 				indivNames.push_back(tempname);
 				//Load image
 				std::string full_dir;
@@ -266,14 +294,17 @@ bool SingleOutput::getImageList(std::string mainDir)
 			if(debugConfiguration&saveFound)
 			{
 				std::stringstream full;
-				full<<mainDir<<"/"<<debug_folder<<"/Found";
+				full<<outputDir<<"/"<<debug_folder<<"/Found";
 				createDir(full.str());
+				debugOut(full.str());
+				
 			}
 			if(debugConfiguration&saveNotFound)
 			{
 				std::stringstream full;
-				full<<mainDir<<"/"<<debug_folder<<"/NotFound";
+				full<<outputDir<<"/"<<debug_folder<<"/NotFound";
 				createDir(full.str());
+				debugOut(full.str());
 			}
 			
 			Success=true;
@@ -291,6 +322,14 @@ void SingleOutput::clearInternals()
 	outputImages.clear();
 	foundCorners.clear();
 }
+
+void SingleOutput::printConfig()
+{
+	std::cout<<"K "<<measured_k<<std::endl;
+	std::cout<<"D "<<measured_d<<std::endl;
+	std::cout<<"Rms "<<rms_meas<<std::endl;
+}
+
 
 
 	
