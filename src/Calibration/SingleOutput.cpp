@@ -30,10 +30,6 @@ void SingleOutput::setMetaData(std::string file, std::string output, std::string
 	debug_folder=debug;
 }
 
-bool SingleOutput::calibrate()
-{
-
-}
 
 bool SingleOutput::calibrateCamera(std::string mainDir,std::string outputDir, int row, int col, int size, int un)
 {
@@ -69,7 +65,7 @@ bool SingleOutput::calibrateCamera(std::string mainDir,std::string outputDir, in
 	if(getImageList(mainDir))
 	{
 		genFeatures();
-		printConfig();
+		debugOut("Finished Feature Gen");
 		Success=true;
 	}
 	else
@@ -196,7 +192,7 @@ void SingleOutput::genFeatures()
 			std::cout<<indivNames.at(imageIndex)<<" -- ["<<(imageIndex+1)<<"/"<<inputImages.size()<<"]\t";
 			findImageFeature(inputImages.at(imageIndex),indivNames.at(imageIndex));
 		}
-
+	std::cout<<"Images Processed -- calculating calibration\n";
 	std::vector<cv::Mat> tempR,tempT;
 	rms_meas=cv::calibrateCamera(generateCheckBoardCoord(),foundCorners,calibration_size,measured_k,measured_d,tempR,tempT,CV_CALIB_RATIONAL_MODEL);
 	
@@ -263,23 +259,14 @@ bool SingleOutput::getImageList(std::string mainDir)
 			if(!reject)//gets rid of the .  and .. directories
 			{
 				indivNames.push_back(tempname);
-				//Load image
-				std::string full_dir;
-				
-				full_dir=mainDir;
-				full_dir+="/";
-				full_dir+=tempname;
-				
-				fullNames.push_back(full_dir);
-				
-				cv::Mat tempImage=cv::imread(full_dir,cv::IMREAD_GRAYSCALE);
-				
-				inputImages.push_back(tempImage);
-				debugOut("Reading - "+full_dir);
 			}
 
 		}
 		closedir(dp);
+		
+		std::sort(indivNames.begin(),indivNames.end());
+		
+		loadImages();
 		
 		
 		if((fullNames.size()<1)||(indivNames.size()<1))
@@ -314,6 +301,27 @@ bool SingleOutput::getImageList(std::string mainDir)
 	return Success;
 }
 
+void SingleOutput::loadImages()
+{
+	for(int index=0;index<indivNames.size();index++)
+	{
+		
+		std::string full_dir;
+				
+		full_dir=inputDir;
+		full_dir+="/";
+		full_dir+=indivNames.at(index);
+				
+		fullNames.push_back(full_dir);
+		
+		cv::Mat tempImage=cv::imread(full_dir,cv::IMREAD_GRAYSCALE);
+				
+		inputImages.push_back(tempImage);
+		debugOut("Reading - "+full_dir);
+		
+	}
+}
+
 void SingleOutput::clearInternals()
 {
 	fullNames.clear();
@@ -328,6 +336,15 @@ void SingleOutput::printConfig()
 	std::cout<<"K "<<measured_k<<std::endl;
 	std::cout<<"D "<<measured_d<<std::endl;
 	std::cout<<"Rms "<<rms_meas<<std::endl;
+}
+
+
+Single SingleOutput::generateSingle()
+{
+	Single ans;
+	ans.K_=measured_k;
+	ans.K_dist_=measured_d;
+	ans.RMS_Error=rms_meas;
 }
 
 

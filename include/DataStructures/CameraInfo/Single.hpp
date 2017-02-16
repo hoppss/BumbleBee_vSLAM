@@ -29,6 +29,8 @@ class Single
 				friend class Stereo;
 				friend class Calibrator;
 				friend class StereoCamera;
+				friend class SingleOutput;
+				friend class StereoOutput;
 
 };
 

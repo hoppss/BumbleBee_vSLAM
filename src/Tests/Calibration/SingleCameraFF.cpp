@@ -4,7 +4,7 @@
 int main(int argc, char * argv[])
 {
 	using namespace stereo;
-	std::string in="/media/ubuntu/SD_CARD/calibration/left";
+	std::string in="/media/ubuntu/SD_CARD/calibration/right";
 	std::string outfold="/media/ubuntu/SD_CARD/calibration";
 	std::string  out="output";
 	std::string deb="debug";
@@ -20,7 +20,7 @@ int main(int argc, char * argv[])
 	
 	left.setMetaData(pref,out,deb);
 	
-	int debugConf=SingleOutput::debugInfo|SingleOutput::saveFound|SingleOutput::saveNotFound;
+	int debugConf=SingleOutput::debugInfo;
 	
 	std::cout<<"debug info- "<<std::bitset<6>(debugConf)<<std::endl;
 	left.calibrateCamera(in,outfold,patternsize_rows,patternsize_cols,squareSize,un,debugConf);

@@ -17,6 +17,8 @@
 
 #include <iostream>
 #include <bitset>
+
+#include "DataStructures/CameraInfo/Single.hpp"
 namespace stereo
 {
 	
@@ -45,7 +47,6 @@ class SingleOutput
 		cv::Size internalBoardSize;
 		////data
 		void debugOut(std::string message);
-		bool calibrate();
 		void printDebugConfig();
 		bool getImageList(std::string mainDir);
 		void genFeatures();
@@ -53,9 +54,9 @@ class SingleOutput
 		void findImageFeature(cv::Mat img,std::string fname);
 		void createDir(std::string dir);
 		void setDirectories(std::string in,std::string out);
+		void loadImages();
 		std::vector< std::vector< cv::Vec3f > > generateCheckBoardCoord();
-		
-	//	std::vector< std::vector< cv::Vec3f > > genBoardPoints(cv::Size board, int square_size,int PatternViews);
+		Single generateSingle();
 	public:
 		enum SingleOutputDEBUG
 		{
@@ -76,6 +77,7 @@ class SingleOutput
 		bool calibrateCamera(std::string mainDir,std::string outputDir,int row,int col, int size,int un);
 		bool calibrateCamera(std::string mainDir,std::string outputDir,int row,int col, int size,int un,int conf);
 		void printConfig();
+		friend class StereoOutput;
 	
 };
 

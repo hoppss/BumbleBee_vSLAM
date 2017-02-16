@@ -1,74 +1,44 @@
-#include "Calibration/Calibrator.hpp"
-#include <bitset>
+#include "Calibration/StereoOutput.hpp"
 
 void printExpectedArgs();
 
 int main(int argc, char * argv[])
 {
 	
-	/*
-	 * Note : This assumes directories are already in place,
-	 * i.e if the input and output directories dont exist for the images, they wont be created
-	 * and thus nothing will be saved
+	using namespace stereo;
+	
+	/**
+	 * Manually setting files for now
 	 * */
-/*	using namespace stereo;
-	Calibrator cal;
-	Single l_,r_;
+	std::string left="/media/ubuntu/SD_CARD/calibration/left";
+	std::string right="/media/ubuntu/SD_CARD/calibration/right";
+	std::string outfold="/media/ubuntu/SD_CARD/calibration";
+	std::string  out="output";
+	std::string deb="debug";
+	std::string pref="left_";
+	bool fullDebug=true;
+	int patternsize_rows=12;
+	int patternsize_cols=10;
+	int squareSize=37;
+	int un=SingleOutput::mm;
 	
-	//setup configuration
-	//assuming full debug must be produced
-	if(argc!=7)
-	{
-		printExpectedArgs();
-		return 1;
-	}
+	///calibrate left
 	
-	std::string in(argv[1]);
-	std::string  out(argv[2]);
-	std::stringstream temp(argv[3]);
-	int patternsize_rows=atoi(argv[4]);
-	int patternsize_cols=atoi(argv[5]);
-	int squareSize=atoi(argv[6]);;
+	SingleOutput lc,rc;
 	
-	bool debug;
+	lc.setMetaData(pref,out,deb);
+	int debugConf=SingleOutput::debugInfo|SingleOutput::saveFound|SingleOutput::saveNotFound;
+	lc.calibrateCamera(left,outfold,patternsize_rows,patternsize_cols,squareSize,un,debugConf);
 	
-	temp>>std::boolalpha>>debug;
+	//calibrate right
+	pref="right_";
+	rc.setMetaData(pref,out,deb);
+	rc.calibrateCamera(right,outfold,patternsize_rows,patternsize_cols,squareSize,un,debugConf);
 
+	//estimate baseline
 	
-	int config;
-	
-	config=(saveFoundBoards|debugLeft|debugRight);
-		
-	std::cout<<"config --\n";
-	std::cout<<"input directory - "<<in<<std::endl;
-	std::cout<<"output directory - "<<out<<std::endl;
-	std::cout<<"debug info- "<<std::bitset<8>(config)<<std::endl;
-	
-	//calibrate the left camera
-	std::string fullcam_dir;
-	std::string fulloutput_dir;
-	
-	fullcam_dir=in;
-	fullcam_dir+="/left";
-	
-	fulloutput_dir=out;
-	fulloutput_dir+="/left";
-
-	l_=cal.calibrateCamera(fullcam_dir,config,fulloutput_dir,patternsize_rows,patternsize_cols,squareSize);
-
-	//calibrate the right camera
-	fullcam_dir=in;
-	fullcam_dir+="/right";
-	
-	fulloutput_dir=out;
-	fulloutput_dir+="/right";
-	
-	r_=cal.calibrateCamera(fullcam_dir,config,fulloutput_dir,patternsize_rows,patternsize_cols,squareSize);
-
-	
-	
-	*/
-	
+	StereoOutput ster;
+	ster.calibrateStereo(lc,rc);
 	
 	
 	return 0;

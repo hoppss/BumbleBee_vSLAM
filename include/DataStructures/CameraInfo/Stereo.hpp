@@ -33,7 +33,7 @@ class Stereo
 		cv::Mat getEssentialMatrix(CoordinateSystem sys);
 		cv::Mat getFundamentalMatrix(CoordinateSystem sys);
 		Isometry getBaseline(CoordinateSystem sys);
-
+		double RMS_Error;
 		
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
