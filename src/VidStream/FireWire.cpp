@@ -178,6 +178,7 @@ void FireWire::convertToMat(dc1394video_frame_t * src)
 	s_pt=(short int*)&stereo_frame.image[0];
 	memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
 	cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
+	free(s_pt);
 }
 
 
