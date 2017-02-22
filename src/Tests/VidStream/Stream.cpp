@@ -1,6 +1,7 @@
 
 #include "VidStream/FireWire.hpp"
 #include <chrono>
+#include <time.h>
 
 #define WIDTH 15
 
@@ -41,7 +42,17 @@ int main(int argc,char** argv)
 			}
 			case 1048608: //spacebar pushed
 			{
-				cv::waitKey(0);
+				int save=cv::waitKey(0);
+				if(save=1048608)
+				{
+						time_t sec=time(0);
+						std::stringstream l,r;
+						l<<"/media/ubuntu/SD_CARD/calibration/left/l_"<<sec<<".ppm";
+						r<<"/media/ubuntu/SD_CARD/calibration/right/r_"<<sec<<".ppm";
+						cv::imwrite(l.str(),left);
+						cv::imwrite(r.str(),right);
+						std::cout<<"Saved\n";
+				}
 				break;
 			}
 			case 1048691: //s key pushed

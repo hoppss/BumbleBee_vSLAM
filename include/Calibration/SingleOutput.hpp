@@ -19,6 +19,7 @@
 #include <bitset>
 
 #include "DataStructures/CameraInfo/Single.hpp"
+#include "Calibration/SingleConfig.hpp"
 namespace stereo
 {
 	

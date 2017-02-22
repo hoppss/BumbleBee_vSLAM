@@ -10,7 +10,7 @@ int main(int argc, char * argv[])
 	/**
 	 * Manually setting files for now
 	 * */
-	std::string left="/media/ubuntu/SD_CARD/calibration/left";
+/*	std::string left="/media/ubuntu/SD_CARD/calibration/left";
 	std::string right="/media/ubuntu/SD_CARD/calibration/right";
 	std::string outfold="/media/ubuntu/SD_CARD/calibration";
 	std::string  out="output";
@@ -40,7 +40,7 @@ int main(int argc, char * argv[])
 	StereoOutput ster;
 	ster.calibrateStereo(lc,rc);
 	
-	
+	*/
 	return 0;
 }
 

@@ -2,6 +2,7 @@
 add_library(Calibration  
 	Calibrator.cpp
 	SingleOutput.cpp
+	SingleConfig.cpp
 	StereoOutput.cpp
 	)
 	
