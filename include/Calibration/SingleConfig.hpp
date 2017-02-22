@@ -5,6 +5,8 @@
 #include <bitset>
 
 #include <opencv2/core.hpp>
+#include <opencv2/calib3d.hpp>
+
 #include <algorithm>
 #include <vector>
 #include <sys/types.h>
@@ -14,6 +16,8 @@
 
 namespace stereo
 {
+std::vector< std::vector< cv::Point3f > > getChessPoints(cv::Size board, double square_size, int n);	
+	
 class SingleConfig{
 	private:
 	public:
@@ -32,10 +36,21 @@ class SingleConfig{
 		bool debugInfo;
 		bool saveFound;
 		bool saveNotFound;
+		bool saveDrawn;
+		bool robustCheckerBoard;
+		bool displayFound;
+		bool displayNotFound;
+		bool cal_adaptive;
+		bool cal_normalize;
+		bool cal_filter;
 		calUnits unit;
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void print();
+		cv::Size getBoard();
+		int getCalibrationFlags();
+		std::vector<cv::Point3f> genBoardCoordinate();
+		std::vector< std::vector<cv::Point3f> >  genSetBoardCoordinate(int image_total);
 		SingleConfig();
 
 };

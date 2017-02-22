@@ -8,7 +8,7 @@ StereoOutput::StereoOutput()
 		
 	}
 	
-	
+/*
 bool StereoOutput::calibrateStereo(SingleOutput& left, SingleOutput& right)
 {
 	bool Ans;
@@ -24,10 +24,10 @@ bool StereoOutput::calibrateStereo(SingleOutput& left, SingleOutput& right)
 		std::cout<<"Trying"<<std::endl;
 	cv::TermCriteria(cv::TermCriteria::COUNT+cv::TermCriteria::EPS,80,pow(1.0,-6));
 	
-	/*
-	 * Note, we are assuming the left and right images are the same
-	 * i.e. any images where no checkerboard was found has been removed in both the left and right image directories
-	 * */
+	
+	// Note, we are assuming the left and right images are the same
+	// i.e. any images where no checkerboard was found has been removed in both the left and right image directories
+	
 	meas_error=cv::stereoCalibrate(getChessPoints(left.internalBoardSize,left.size_square,left.outputImages.size()),
 											left.foundCorners,right.foundCorners,
 											left.measured_k,left.measured_d,
@@ -91,7 +91,7 @@ void StereoOutput::saveConfiguration(std::string dir, bool lean,SingleOutput& le
 	}
 }
 
-
+*/
 	
 	
 	

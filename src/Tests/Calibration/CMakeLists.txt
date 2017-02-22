@@ -18,3 +18,11 @@ add_executable(SingleCalibrateFromFile
 target_link_libraries(SingleCalibrateFromFile
 	Calibration
 )
+
+add_executable(genCalibrationInput
+	genCalibrationInput.cpp
+	)
+	
+	target_link_libraries(genCalibrationInput
+	Calibration
+	)

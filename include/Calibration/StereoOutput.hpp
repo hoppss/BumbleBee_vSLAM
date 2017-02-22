@@ -9,17 +9,17 @@ namespace stereo
 class StereoOutput
 {
 	private:
-		cv::Mat essential_;
+	/*	cv::Mat essential_;
 		cv::Mat fundamental_;
 		cv::Mat baseline_T_;
 		cv::Mat baseline_R_;
 		double meas_error;
 		std::vector<std::vector<cv::Point3f> >  getChessPoints(cv::Size board,double square_size, int n);
-		Stereo generateStereo();
+		Stereo generateStereo();*/
 	public:
 		StereoOutput();
-		bool calibrateStereo(SingleOutput &left,SingleOutput &right);
-		void saveConfiguration(std::string dir, bool lean,SingleOutput& left, SingleOutput& right);
+//		bool calibrateStereo(SingleOutput &left,SingleOutput &right);
+	//	void saveConfiguration(std::string dir, bool lean,SingleOutput& left, SingleOutput& right);
 		//lean saves only the essential camera parameters
 		
 		
