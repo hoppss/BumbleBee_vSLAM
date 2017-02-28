@@ -18,27 +18,12 @@ int main(int argc, char * argv[])
 	SingleOutput ans;
 	currentCal.calibrate(ans);
 	
-	SingleOutput m;
+	//SingleOutput m;
 
 	
-	cv::FileStorage rr("/media/ubuntu/SD_CARD/calibration/out/leftcal.xml",cv::FileStorage::READ);
-	rr["leftcal"]>>m;
-	rr.release();
-/*
-
-	
-
-	SingleOutput left;
-	
-	left.setMetaData(pref,out,deb);
-	
-	int debugConf=SingleOutput::debugInfo;
-	
-	std::cout<<"debug info- "<<std::bitset<6>(debugConf)<<std::endl;
-	left.calibrateCamera(in,outfold,patternsize_rows,patternsize_cols,squareSize,un,debugConf);
-
-	*/
-	
+	//cv::FileStorage rr("/media/ubuntu/SD_CARD/calibration/out/leftcal.xml",cv::FileStorage::READ);
+	//rr["leftcal"]>>m;
+	//rr.release();
 	return 0;
 }
 

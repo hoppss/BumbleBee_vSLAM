@@ -11,30 +11,41 @@ SingleOutput::SingleOutput()
 
 void SingleOutput::read(const cv::FileNode& node)
 {
-	std::string mss;
 	node["configuration"]>>conf_;
 	node["rms"]>>rms_meas;
 	node["k"]>>measured_k;
 	node["d"]>>measured_d;
 	node["cal"]>>calibration_size;
-	cv::FileNodeIterator meas_begin,meas_end;
-	meas_begin=node["Measurement"].begin();
-	meas_end=node["Measurement"].end();
-	std::string((*meas_begin)["nm"]);
-	std::cout<<"sss ";//<<(*meas_begin)["nm"];
-	//meas_it["nm"]>>static_cast<std::string>(mss);
+	cv::FileNodeIterator meas_it,meas_end;
+	meas_it=node["Measurements"].begin();
+	meas_end=node["Measurements"].end();
 	
-	/*int temp;
-	node["calFileName"]>>filename;
-	node["inputDirectory"]>>in_directory;
-	node["outDirectory"]>>out_directory;
-	node["row"]>>patternRow;
-	node["col"]>>patternCol;
-	node["squareSize"]>>squareSize;
-	node["units"]>>temp;
-	unit=static_cast<SingleConfig::calUnits>(temp);
-	node["debugInfo"]>>debugInfo;
-	node["saveFound"]>>saveFou*/
+	fullDirNames.clear();
+	indivNames.clear();
+	foundCorners.clear();
+	for(;meas_it!=meas_end;++meas_it)
+	{
+		cv::FileNodeIterator point_it,point_end;
+		std::string fulldir,indivN;
+		
+		point_it=(*meas_it)["measured_points"].begin();
+		point_end=(*meas_it)["measured_points"].end();
+		
+		fulldir=std::string((*meas_it)["nm"]);
+		indivN=std::string((*meas_it)["indiv"]);
+		std::vector<cv::Point2f> foundPoints;
+		
+		for(;point_it!=point_end;++point_it)
+		{
+			cv::Point2f tempPoint;
+			(*point_it)>>tempPoint;
+			foundPoints.push_back(tempPoint);
+		}
+		foundCorners.push_back(foundPoints);
+		fullDirNames.push_back(fulldir);
+		indivNames.push_back(indivN);
+	}
+
 }
 
 
@@ -56,7 +67,7 @@ void SingleOutput::write(cv::FileStorage& fs) const
 		fs<<"measured_points"<<"[";
 		for(int pindex=0;pindex<foundCorners.at(index).size();pindex++)
 		{
-			fs<<"pt"<<foundCorners.at(index).at(pindex);
+			fs<<foundCorners.at(index).at(pindex);
 		}
 		fs<<"]";
 		fs<<"}";

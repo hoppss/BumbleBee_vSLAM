@@ -4,7 +4,7 @@ int main(int argc, char * argv[])
 {
 	using namespace stereo;
 	
-	if(argc!=2)
+	if(argc!=3)
 	{
 		std::cout<<"Error!\nincorrect number of arguments, expects a single directory to an output configuration file xml\n";
 		std::cout<<"genCalibrationInput [directoryName.xml]\n";
@@ -14,7 +14,7 @@ int main(int argc, char * argv[])
 	SingleConfig debug;
 	debug.filename="leftcal";
 	debug.in_directory="/media/ubuntu/SD_CARD/calibration/left";
-	debug.out_directory="/media/ubuntu/SD_CARD/calibration/out";
+	debug.out_directory="/media/ubuntu/SD_CARD/calibration/leftOutput";
 	debug.patternCol=10;
 	debug.patternRow=12;
 	debug.squareSize=37;
@@ -30,9 +30,34 @@ int main(int argc, char * argv[])
 	debug.cal_filter=true;
 	debug.cal_normalize=false;
 
-	cv::FileStorage fs(std::string(argv[1]),cv::FileStorage::WRITE);
-	fs<<"configuration"<<debug;
-	fs.release();
+	cv::FileStorage fs_l(std::string(argv[1]),cv::FileStorage::WRITE);
+	fs_l<<"configuration"<<debug;
+	fs_l.release();
+	
+	SingleConfig Rightdebug;
+	debug.filename="rightcal";
+	debug.in_directory="/media/ubuntu/SD_CARD/calibration/right";
+	debug.out_directory="/media/ubuntu/SD_CARD/calibration/rightOutput";
+	debug.patternCol=10;
+	debug.patternRow=12;
+	debug.squareSize=37;
+	debug.debugInfo=true;
+	debug.saveFound=true;
+	debug.saveNotFound=false;
+	debug.unit=SingleConfig::mm;
+	debug.robustCheckerBoard=true;
+	debug.saveDrawn=true;
+	debug.displayFound=false;
+	debug.displayNotFound=false;
+	debug.cal_adaptive=true;
+	debug.cal_filter=true;
+	debug.cal_normalize=false;
+
+	cv::FileStorage fs_r(std::string(argv[2]),cv::FileStorage::WRITE);
+	fs_r<<"configuration"<<Rightdebug;
+	fs_r.release();
+	
+	
 
 	
 //	cv::FileStorage f("/media/ubuntu/SD_CARD/calibration/in.xml",cv::FileStorage::WRITE);
