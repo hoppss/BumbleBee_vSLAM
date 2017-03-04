@@ -12,3 +12,6 @@ target_link_libraries(Stream VidStream)
 
 add_executable(SaveCalibrationImages SaveCalibrationImages.cpp)
 target_link_libraries(SaveCalibrationImages VidStream)
+
+add_executable(CreateDataSet CreateDataSet.cpp)
+target_link_libraries(CreateDataSet VidStream ncurses)

@@ -42,6 +42,7 @@ namespace stereo{
 		bool singleCapture(cv::Mat &output);
 		bool singleCapture(cv::Mat &l,cv::Mat &r);
 		bool getLatestFrame(cv::Mat &l,cv::Mat &r);
+		bool getLatestFrame(cv::Mat &l,cv::Mat &r,uint64_t &stamp);
 		bool streamStop();
 		bool openStream();
 	};

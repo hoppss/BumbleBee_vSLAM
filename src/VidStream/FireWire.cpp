@@ -263,5 +263,40 @@ bool FireWire::getLatestFrame(cv::Mat& l, cv::Mat& r)
 	return Success;
 }
 
+bool FireWire::getLatestFrame(cv::Mat& l, cv::Mat& r,uint64_t &stamp)
+{
+	bool Success=true;
+	dc1394video_frame_t * tempFrame;
+	dc1394error_t deque,enque;
+	
+	
+	deque=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&tempFrame);
+	if(deque==DC1394_SUCCESS)
+		{
+					//check for frame corruption
+					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
+					{
+							convertToMat(tempFrame);
+							l=left_img;
+							r=right_img;
+							stamp=tempFrame->timestamp;
+					}
+					else
+					{
+						Success=false;
+						std::cerr<<"Frame corrupt -error- \n";
+					}
+		}
+	enque=dc1394_capture_enqueue(camera,tempFrame);
+	if(enque!=DC1394_SUCCESS)
+	{
+		std::cerr<<"Enque -error- "<<dc1394_error_get_string(enque)<<std::endl;	
+		Success=false;
+	}
+	return Success;
+
+}
+
+
 
 }

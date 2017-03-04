@@ -12,7 +12,7 @@ int main(int argc,char* argv[])
 	
 	std::string leftxml(argv[1]),rightxml(argv[2]);
 	
-	stereo::StereoCalibrator cal(leftxml,rightxml);
+	//stereo::StereoCalibrator cal(leftxml,rightxml);
 	
 	//std::string indir(argv[1]);
 	//SingleCalibrator currentCal(indir);
