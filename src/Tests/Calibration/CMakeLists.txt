@@ -34,3 +34,11 @@ add_executable(StereoFromFile
 	target_link_libraries(StereoFromFile
 	Calibration
 	)
+	
+add_executable(genStereoCalibrationInput
+	genStereoCalibrationInput.cpp
+)
+
+target_link_libraries(genStereoCalibrationInput
+	Calibration
+	)

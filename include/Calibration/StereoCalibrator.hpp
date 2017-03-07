@@ -11,7 +11,9 @@ namespace stereo
 
 class StereoCalibrator
 {
+	private:
 	public:
+		stereo::StereoConfig config_;
 		StereoCalibrator(std::string configDir);
 		StereoCalibrator(StereoConfig config);
 		bool calibrate(StereoOutput &output);
