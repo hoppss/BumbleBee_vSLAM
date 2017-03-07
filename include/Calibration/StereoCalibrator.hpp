@@ -12,6 +12,9 @@ namespace stereo
 class StereoCalibrator
 {
 	private:
+		void printDebug(std::string msg,bool newline);
+		std::stringstream debugMsgs;
+		std::vector<std::vector<cv::Point3f> > getVectorBoardCoordinates(int n_images_found);
 	public:
 		stereo::StereoConfig config_;
 		StereoCalibrator(std::string configDir);

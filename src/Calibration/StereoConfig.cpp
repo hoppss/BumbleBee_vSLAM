@@ -49,9 +49,51 @@ void StereoConfig::write(cv::FileStorage& fs) const
 	fs<<"}";
 }
 
-void StereoConfig::getMatchesOverlap(std::vector< std::vector< cv::Point2f > >& outLeft, std::vector< std::vector< cv::Point2f > >& outright)
+void StereoConfig::getMatchesOverlap(std::vector< std::vector< cv::Point2f > >& outLeft, std::vector< std::vector< cv::Point2f > >& outright,std::vector<int> &leftindex,std::vector<int> &rightindex)
 {
+	
+	/**
+	 * we can only use images in which the checkerboard pattern was found in both the left and right images...
+	 * Thus the set of found images for each seperate camera must be compared against one another
+	 * and only the where both are present, is the vector of points compared and added for the calibration*/
+	std::vector< std::string > stripped_leftNames,stripped_rightNames;
+	stripped_leftNames=removePrefixes(output_left_.indivNames);
+	stripped_rightNames=removePrefixes(output_right_.indivNames);
+	
+	for(int lindex=0;lindex<stripped_leftNames.size();lindex++)
+	{
+		std::vector<std::string>::iterator foundIt=std::find(stripped_rightNames.begin(),stripped_rightNames.end(),stripped_leftNames.at(lindex));
+		if(foundIt!=stripped_rightNames.end())
+		{
+			int integer_left,integer_right;//conversion from iterators to element numbers
+			integer_left=lindex;
+			integer_right=std::distance(stripped_rightNames.begin(),foundIt);
+			
+			//save to output vectors
+			outLeft.push_back(output_left_.foundCorners.at(integer_left));
+			leftindex.push_back(integer_left);
+			
+			outright.push_back(output_right_.foundCorners.at(integer_right));
+			rightindex.push_back(integer_right);
+			
+		}
+	}
+	
 
+}
+
+
+std::vector< std::string > StereoConfig::removePrefixes(std::vector< std::string > input)
+{
+	std::vector< std::string > Ans;
+	for(int index=0;index<input.size();index++)
+	{
+		size_t found=input.at(index).find_last_of("_");
+		std::string shortened=input.at(index);
+		shortened.erase(shortened.begin(),shortened.begin()+found);
+		Ans.push_back(shortened);
+	}
+	return Ans;
 }
 
 

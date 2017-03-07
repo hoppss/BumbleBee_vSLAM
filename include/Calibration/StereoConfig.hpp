@@ -8,7 +8,7 @@ namespace stereo
 class StereoConfig
 {
 	private:
-		
+		std::vector<std::string> removePrefixes(std::vector<std::string> input);
 	public:
 		StereoConfig();
 		SingleConfig config_left_,config_right_;
@@ -21,7 +21,8 @@ class StereoConfig
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void getMatchesOverlap(std::vector< std::vector<cv::Point2f> > &outLeft,
-														std::vector< std::vector<cv::Point2f> > &outright);//gets all the points where checkerboard pattern is found in both left and right
+														std::vector< std::vector<cv::Point2f> > &outright,
+														std::vector<int> &leftindex,std::vector<int> &rightindex);//gets all the points where checkerboard pattern is found in both left and right
 };
 
 

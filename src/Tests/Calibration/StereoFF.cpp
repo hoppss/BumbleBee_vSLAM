@@ -3,10 +3,10 @@
 
 int main(int argc,char* argv[])
 {
-	if((argc==2))
+	if((argc!=2))
 	{
-		std::cout<<"Error!\nincorrect number of arguments, expects two directories to left and right xml outputs \n";
-		std::cout<<"StereoCalibrateFromFile [Left.xml] [Right.xml]\n";
+		std::cout<<"Error!\nincorrect number of arguments, expects a single stereo configuration file \n";
+		std::cout<<"StereoFromFile [stereo.xml]\n";
 		return 1;
 	}
 	
@@ -23,7 +23,7 @@ int main(int argc,char* argv[])
 		std::cout<<"error, failed to calibrate stereo camera correctly\n";
 		return 1;
 	}
-	
+	 
 	
 	
 //	std::cout<<calib.config_.compute_left_;
