@@ -14,6 +14,10 @@
 #include <errno.h>
 #include <cstdlib>
 
+/*
+ * A configuration Class for an individual camera,
+ * it specifies where to find the images, where to save them, 
+ * and a few other helper functions for the calibration itself*/
 namespace stereo
 {
 std::vector< std::vector< cv::Point3f > > getChessPoints(cv::Size board, double square_size, int n);	
@@ -27,30 +31,32 @@ class SingleConfig{
 		  cm=1,
 			mm=2
 		};
-		std::string filename;
-		std::string in_directory;
-		std::string out_directory;
+		std::string filename;  //save file name
+		std::string in_directory; //where to look for images
+		std::string out_directory;//where to save all the output
 		int patternRow;
 		int patternCol;
 		int squareSize;
-		bool debugInfo;
-		bool saveFound;
-		bool saveNotFound;
-		bool saveDrawn;
-		bool robustCheckerBoard;
-		bool displayFound;
-		bool displayNotFound;
+		bool debugInfo;//true if printing debug information
+		bool saveFound;//true if saving images with found checkerboards
+		bool saveNotFound;//true if saving images where no checkerboard was found
+		bool saveDrawn;//true if Drawing checkerboard onto the image is required
+		bool robustCheckerBoard;//TODO 
+		bool displayFound;//true if each found checkerboard will be displayed in the program
+		bool displayNotFound;//true if each image where no checkerboard is found will be displayed
+		/*Calibration flags for a single camera configuration*/
 		bool cal_adaptive;
 		bool cal_normalize;
 		bool cal_filter;
-		calUnits unit;
+		calUnits unit;//What units is the size of the squares given in
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void print();
 		cv::Size getBoard();
-		int getCalibrationFlags();
-		std::vector<cv::Point3f> genBoardCoordinate();
+		int getCalibrationFlags();//produces the enumeration over all the calibration flags set
+		std::vector<cv::Point3f> genBoardCoordinate();//generates the coordiantes of the checkerboard relative to the top left with z=0
 		std::vector< std::vector<cv::Point3f> >  genSetBoardCoordinate(int image_total);
+		//opencv requires a set of checkerboard to be passed, image total is the number of found images
 		SingleConfig();
 
 };

@@ -36,7 +36,7 @@ void SingleConfig::write(cv::FileStorage& fs) const
 
 void SingleConfig::read(const cv::FileNode& node)
 {
-
+	/*Read from XML*/
 	int temp;
 	node["calFileName"]>>filename;
 	node["inputDirectory"]>>in_directory;
@@ -60,6 +60,7 @@ void SingleConfig::read(const cv::FileNode& node)
 
 void SingleConfig::print()
 {
+	/*Small print out function for debug purposes*/
 	std::cout<<"Output\t"<<filename<<std::endl;
 	std::cout<<"ImageDirectory\t"<<in_directory<<std::endl;
 	std::cout<<"OutputDirectory\t"<<out_directory<<std::endl;
@@ -99,11 +100,14 @@ void SingleConfig::print()
 
 cv::Size SingleConfig::getBoard()
 {
+	/*returns the inner board size of the checkerboard*/
 	return cv::Size(patternRow-1,patternCol-1);
 }
 
 int SingleConfig::getCalibrationFlags()
 {
+	/*combines all the calibration flags into one single number to be 
+	 * passed to opencv calibrate function*/
 	int flags= 0;
 	if(cal_adaptive)
 	{
@@ -136,6 +140,9 @@ std::vector< std::vector< cv::Point3f > > SingleConfig::genSetBoardCoordinate(in
 
 std::vector< std::vector< cv::Point3f > > getChessPoints(cv::Size board, double square_size, int n)
 {
+	/*produces a vector of chesspoints relative to the checkerboard, requires the size of the inner board,
+	 * the physical dimensions of the squares used in the calibration,
+	 * and the total number of copies n to be made*/
 	std::vector< std::vector< cv::Point3f > > Ans;
 	
 	for(int pattern=0;pattern<n;pattern++)
