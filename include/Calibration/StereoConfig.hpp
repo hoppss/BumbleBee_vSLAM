@@ -18,6 +18,21 @@ class StereoConfig
 		bool compute_rectify_;
 		bool compute_left_;
 		bool compute_right_;
+		/// calibration flags
+		bool calib_fix_intrinsic_;
+		bool calib_guess_intrinsic_;
+		bool calib_fix_principal_;
+		bool calib_fix_focal_;
+		bool calib_fix_aspect_;
+		bool calib_same_focal_;
+		bool calib_zero_tangent_;
+		bool calib_fix_dist_;
+		bool calib_rational_model_;
+		double termination_error_;
+		int max_count_;
+		bool count_criteria_;//if both, the will be set to count+eps
+		bool eps_critera_;
+		
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void getMatchesOverlap(std::vector< std::vector<cv::Point2f> > &outLeft,

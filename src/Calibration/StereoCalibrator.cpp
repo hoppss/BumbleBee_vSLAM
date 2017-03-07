@@ -48,6 +48,10 @@ bool StereoCalibrator::calibrate(StereoOutput& output)
 		config_.getMatchesOverlap(leftFoundPoints,rightFoundPoints,leftIndex,rightIndex);
 		
 		//dont check for errors, just use the singleOutputs available in the class
+		if(config_.showIndividualMatches_)
+		{
+			checkCorrespondences(leftFoundPoints.at(0),rightFoundPoints.at(0),leftIndex.at(0),rightIndex.at(0));
+		}
 
 		double error;
 		cv::Mat tempR,tempT,tempE,tempF;
@@ -89,6 +93,33 @@ void StereoCalibrator::printDebug(std::string msg,bool newline)
 		}
 	}
 }
+
+void StereoCalibrator::checkCorrespondences(std::vector< cv::Point2f > left, std::vector< cv::Point2f > right, int lindex, int rindex)
+{
+	//create image
+	cv::Mat outputImage;
+	cv::Mat leftImage,rightImage;
+	
+		
+	
+	leftImage=cv::imread(config_.output_left_.fullDirNames.at(lindex),cv::IMREAD_GRAYSCALE);
+	rightImage=cv::imread(config_.output_right_.fullDirNames.at(rindex),cv::IMREAD_GRAYSCALE);
+	
+	outputImage=cv::Mat(leftImage.size().height,leftImage.size().width+rightImage.size().width,leftImage.type());
+	
+	leftImage.copyTo(outputImage(cv::Rect(0,0,leftImage.size().width,leftImage.size().height)));
+	rightImage.copyTo(outputImage(cv::Rect(leftImage.size().width,0,rightImage.size().width,rightImage.size().height)));
+
+	cv::cvtColor(outputImage,outputImage,cv::COLOR_GRAY2BGR);
+	
+	cv::namedWindow("correspondences",cv::WINDOW_NORMAL);
+	cv::imshow("correspondences",outputImage);
+	cv::waitKey(0);
+	cv::destroyWindow("correspondences");
+	
+	
+}
+
 
 
 	

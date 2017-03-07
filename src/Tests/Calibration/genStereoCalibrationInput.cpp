@@ -31,6 +31,20 @@ int main(int argc,char* argv[])
 	bumble_config.debugInfo_=false;
 	bumble_config.compute_rectify_=false;
 	bumble_config.showIndividualMatches_=true;
+	bumble_config.calib_fix_intrinsic_=false;
+	bumble_config.calib_guess_intrinsic_=false;
+	bumble_config.calib_fix_principal_=false;
+	bumble_config.calib_fix_focal_=false;
+	bumble_config.calib_fix_aspect_=false;
+	bumble_config.calib_same_focal_=true;
+	bumble_config.calib_zero_tangent_=false;
+	bumble_config.calib_fix_dist_=false;
+	bumble_config.calib_rational_model_=false;
+	
+	bumble_config.termination_error_=1e-06;
+	bumble_config.max_count_=2000;
+	bumble_config.count_criteria_=true;
+	bumble_config.eps_critera_=true;
 	
 	
 	fs.open(outdir,cv::FileStorage::WRITE);
