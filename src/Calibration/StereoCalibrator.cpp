@@ -50,7 +50,13 @@ bool StereoCalibrator::calibrate(StereoOutput& output)
 		//dont check for errors, just use the singleOutputs available in the class
 		if(config_.showIndividualMatches_)
 		{
-			checkCorrespondences(leftFoundPoints.at(0),rightFoundPoints.at(0),leftIndex.at(0),rightIndex.at(0));
+			cv::namedWindow("correspondences",cv::WINDOW_NORMAL);
+			for(int temp=0;temp<leftFoundPoints.size();temp++)
+			{
+				checkCorrespondences(leftFoundPoints.at(temp),rightFoundPoints.at(temp),leftIndex.at(temp),rightIndex.at(temp));
+				cv::waitKey(0);
+			}
+			cv::destroyWindow("correspondences");
 		}
 
 		double error;
@@ -61,11 +67,15 @@ bool StereoCalibrator::calibrate(StereoOutput& output)
 												config_.output_right_.measured_k,config_.output_right_.measured_d,
 												config_.output_left_.calibration_size,
 												tempR,tempT,tempE,tempF);
-		std::cout<<"-----\nstereo error : "<<error<<"\n----\n";
-
+		std::cout<<"-----\nCalibration Successfull\nstereo error : "<<error<<"\n----\n";
+		std::cout<<"BaseLine:\t"<<tempR<<"\t"<<tempT<<std::endl;
+		std::cout<<"EpiPolar Config\tF:"<<tempF<<"\tE:"<<tempE<<std::endl;
+		
+		
 		Success=true;
 	}
-	//TODO add functions to perform the calibration if a singleconfig file is give instead of precomputed info
+	//TODO add functions to perform the calibration if a singleconfig file is
+//	give instead of precomputed info
 	
 	return Success;
 
@@ -112,10 +122,14 @@ void StereoCalibrator::checkCorrespondences(std::vector< cv::Point2f > left, std
 
 	cv::cvtColor(outputImage,outputImage,cv::COLOR_GRAY2BGR);
 	
-	cv::namedWindow("correspondences",cv::WINDOW_NORMAL);
+	for(int index=0;index<left.size();index++)
+	{
+		cv::Point2f offset=right.at(index);
+		offset.x+=leftImage.size().width;
+		cv::line(outputImage,left.at(index),offset,cv::Scalar(0,255,0));
+	}
 	cv::imshow("correspondences",outputImage);
-	cv::waitKey(0);
-	cv::destroyWindow("correspondences");
+
 	
 	
 }
