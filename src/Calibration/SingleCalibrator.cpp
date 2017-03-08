@@ -15,25 +15,28 @@ SingleCalibrator::SingleCalibrator(SingleConfig conf)
 
 void SingleCalibrator::genDirectories()
 {
-	std::stringstream comm;
-	std::stringstream fulldir;
-	std::string str_command;
+	/*creates the directories in which the output will be saved
+	 * by using the system terminal commands*/
+	
+	std::stringstream comm; //holds the command to be sent to the command line
+	std::stringstream fulldir;//holds the "output" directory 
+	std::string str_command;//a converted command line, system() only accepts char arrays as input, std::string eases the conversion process
 	
 	msgs_.str("");
 	msgs_<<"Directories created\t";
 	
-	if(configuration_.saveFound)
+	if(configuration_.saveFound)//create a directory for the found images to be saved
 	{
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/Found";
 		comm.str("");
-		comm<<"mkdir -p "<<fulldir.str();
+		comm<<"mkdir -p "<<fulldir.str(); //make directory and all the sub folders
 		str_command=comm.str();
 		system(str_command.c_str());
 		full_found=fulldir.str();
 		msgs_<<fulldir.str()<<"\t";
 	}
-	if(configuration_.saveNotFound)
+	if(configuration_.saveNotFound) //create a directory for images where no checkerboard is foudn
 	{
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/NotFound";
@@ -46,7 +49,7 @@ void SingleCalibrator::genDirectories()
 	}
 	
 	
-	if(configuration_.saveDrawn)
+	if(configuration_.saveDrawn) //directory for images where drawn checkerboards are filled in 
 	{
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/Drawn";
@@ -70,32 +73,36 @@ void SingleCalibrator::genDirectories()
 }
 
 
-bool SingleCalibrator::calibrate(SingleOutput &outputcam)
+bool SingleCalibrator::calibrate(SingleOutput &outputcam) 
 {
+	/* A function that returns true if calibration was succesfull and false otherwise, 
+	 * places the output of the calibration in the outputcam variable provided*/
+	//clear all the existing information found in the output structure
 	outputcam.foundCorners.clear();
 	outputcam.fullDirNames.clear();
 	outputcam.indivNames.clear();
-	cv::Size cal_size;
-	tempNames.clear();
-	bool Success;
-	Success=genImageList();
+	cv::Size cal_size; //image size
+	tempNames.clear();//holds all the input image directory names
+	bool Success; //holds return value
+	
+	Success=genImageList();//generate the set of image directories
 	if(Success)
 	{
-		genDirectories();
+		genDirectories();//create the directory structure
 		std::cout<<"finding corners\n";
 		for(int dirIndex=0;dirIndex<tempNames.size();dirIndex++)
 		{
 			std::cout<<"["<<dirIndex+1<<"/"<<tempNames.size()<<"]\n";
 			cv::Mat currentInput,checkerBoard;
 			getImage(dirIndex,currentInput);
-			cal_size=currentInput.size();
+			cal_size=currentInput.size(); /*assuming all images are the same size*/
 			std::vector<cv::Point2f> currentFoundPoints;
 			bool found=getCheckerBoard(currentInput,currentFoundPoints);
 			msgs_.str("");
 			msgs_<<"found checkerboard = "<<found<<"\t Image:\t"<<tempNames.at(dirIndex);
 			debugOut(msgs_.str(),true);
 			
-			
+			/*draws the found checkerboard pattern onto the image*/
 			cv::cvtColor(currentInput,checkerBoard,cv::COLOR_GRAY2BGR);
 			cv::drawChessboardCorners(checkerBoard,configuration_.getBoard(),currentFoundPoints,found);
 			bool wait=false;
@@ -111,7 +118,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 			if(found)
 			{
 			
-
+				
 				if(configuration_.displayFound)
 				{
 					cv::namedWindow("checkerboard",CV_WINDOW_NORMAL);
@@ -119,6 +126,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 				}
 				if(configuration_.saveDrawn)
 				{
+					//save the drawn checkerboard pattern image
 					std::string dirname=full_drawn;
 					dirname+="/";
 					dirname+=tempNames.at(dirIndex);
@@ -126,13 +134,14 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 				}
 				if(configuration_.saveFound)
 				{
+					//save all images that had no checkerboard found
 					std::string dirname=full_found;
 					dirname+="/";
 					dirname+=tempNames.at(dirIndex);
 					cv::imwrite(dirname,currentInput);
 				}
-				
-				outputcam.indivNames.push_back(tempNames.at(dirIndex));
+				/* copy found corners and all the image information to the outputcam */
+				outputcam.indivNames.push_back(tempNames.at(dirIndex)); 
 				std::stringstream fFile;
 				fFile<<configuration_.in_directory<<"/"<<tempNames.at(dirIndex);
 				outputcam.fullDirNames.push_back(fFile.str());
@@ -156,6 +165,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 			}
 			if(wait)
 			{
+				//if any display option are given
 				cv::waitKey(0);
 				cv::destroyAllWindows();
 			}
@@ -165,7 +175,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 		
 		//calibrate camera
 		
-		std::vector<cv::Mat> tempR,tempT;
+		std::vector<cv::Mat> tempR,tempT;//dummy variables
 		cv::Mat tempk,tempd;
 		std::cout<<"Calibrating Camera\n";
 		outputcam.rms_meas=cv::calibrateCamera(configuration_.genSetBoardCoordinate(outputcam.foundCorners.size()),
@@ -198,6 +208,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 
 bool SingleCalibrator::getCheckerBoard(cv::Mat input, std::vector< cv::Point2f >& output)
 {
+	/*find and store the checkerboard points*/
 	bool found=cv::findChessboardCorners(input,
 																	configuration_.getBoard(),output,
 																  configuration_.getCalibrationFlags());
@@ -208,10 +219,12 @@ bool SingleCalibrator::getCheckerBoard(cv::Mat input, std::vector< cv::Point2f >
 
 bool SingleCalibrator::genImageList()
 {
+	/*
+	 * reads all the file names provided by the input arguments*/
 	bool Success=false;
 	DIR *dp;
 	struct dirent *dirp;
-	if((dp=opendir(configuration_.in_directory.c_str())) == NULL)
+	if((dp=opendir(configuration_.in_directory.c_str())) == NULL)//if unable to open
 	{
 		std::cerr << "Error(" << errno << ") opening " <<configuration_.in_directory<< std::endl;
 		Success=false;
@@ -219,12 +232,13 @@ bool SingleCalibrator::genImageList()
 	else
 	{
 		debugOut("Reading from MainDir",true);
-		while( (dirp=readdir(dp))!= NULL)
+		while( (dirp=readdir(dp))!= NULL) //while there are still files to be read
 			{
-				std::string readname(dirp->d_name);
-				bool reject=false;
+				std::string readname(dirp->d_name); //read a single file
+				bool reject=false; //reject the file
 				if((readname.compare("..")==0)||(readname.compare(".")==0))
 				{
+					/*removes the directories inherent to linux of "." and ".."*/
 					reject=true;
 				}
 			
@@ -235,7 +249,7 @@ bool SingleCalibrator::genImageList()
 
 			}
 		closedir(dp);
-		std::sort(tempNames.begin(),tempNames.end());
+		std::sort(tempNames.begin(),tempNames.end());//sort in alphabetical i.e first to last taken
 		Success=true;
 	}
 	return Success;
@@ -245,6 +259,7 @@ bool SingleCalibrator::genImageList()
 
 void SingleCalibrator::debugOut(std::string msg, bool newline)
 {
+	/*prints debug information if setup for debugInfo in coniguration file*/
 	if(configuration_.debugInfo)
 	{
 		if(newline)
@@ -260,6 +275,7 @@ void SingleCalibrator::debugOut(std::string msg, bool newline)
 
 void SingleCalibrator::getImage(int index, cv::Mat& output)
 {
+	/* gets an image in cv::Mat structure at the specified index */
 	std::stringstream inputFile;
 	inputFile<<configuration_.in_directory<<"/"<<tempNames.at(index);
 	output=cv::imread(inputFile.str(),cv::IMREAD_GRAYSCALE);

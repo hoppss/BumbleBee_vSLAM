@@ -18,6 +18,9 @@ class StereoConfig
 		bool compute_rectify_;
 		bool compute_left_;
 		bool compute_right_;
+		bool saveIndividualCameras;
+		std::string StereoName;//assumes .xml is included in the name
+		std::string outputDirectory;
 		/// calibration flags
 		bool calib_fix_intrinsic_;
 		bool calib_guess_intrinsic_;
@@ -30,9 +33,11 @@ class StereoConfig
 		bool calib_rational_model_;
 		double termination_error_;
 		int max_count_;
-		bool count_criteria_;//if both, the will be set to count+eps
+		bool count_criteria_;
 		bool eps_critera_;
 		
+		int getCalibrationFlags();		
+		int getTerminationFlags();
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void getMatchesOverlap(std::vector< std::vector<cv::Point2f> > &outLeft,

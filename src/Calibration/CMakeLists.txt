@@ -1,6 +1,5 @@
 
 add_library(Calibration  
-	Calibrator.cpp
 	SingleCalibrator.cpp
 	SingleOutput.cpp
 	SingleConfig.cpp

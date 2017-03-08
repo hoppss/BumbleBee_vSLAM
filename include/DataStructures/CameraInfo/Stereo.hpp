@@ -11,34 +11,19 @@ namespace stereo {
 
 class Stereo
 {
-	private:
-		Single cam_left_,cam_right_;	
-		cv::Size cal_size_;//calibration
-		Isometry toPixel;
 	public:
 		Stereo();
 		~Stereo();
-		//set methods
-		void setCameraInfo(bool left,cv::Mat k,cv::Mat dist,Isometry iso);
-		void setPixel(Isometry pix);
-		void setCalibImgSize(cv::Size calib);
-		//structures
-		enum CoordinateSystem
-		{
-			LeftCamera,//the left camera is the origin of the world i.e no transfrom from dataset to pixel coordinates
-			LeftPixel//in terms of left pixel coordinates, transform from dataset to the standard computer vision coordinate frame
-		};
-		//output
-		void printConfig(CoordinateSystem sys);
-		cv::Mat getEssentialMatrix(CoordinateSystem sys);
-		cv::Mat getFundamentalMatrix(CoordinateSystem sys);
-		Isometry getBaseline(CoordinateSystem sys);
+		Single cam_left_,cam_right_;	
+		cv::Mat essential_;
+		cv::Mat fundamental_;
 		double RMS_Error;
-		
+		cv::Size cal_size_;//calibration
+
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 	protected:
-		friend class StereoCamera;
+
 };
 
 //These write and read functions must be defined for the serialization in FileStorage to work

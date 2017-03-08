@@ -15,7 +15,6 @@ class StereoOutput
 		cv::Mat baseline_T_;
 		cv::Mat baseline_R_;
 		double meas_error;
-	//	std::vector<std::vector<cv::Point3f> >  getChessPoints(cv::Size board,double square_size, int n);
 	public:
 		StereoOutput();
 //		bool calibrateStereo(SingleOutput &left,SingleOutput &right);

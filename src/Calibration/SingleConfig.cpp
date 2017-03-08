@@ -11,6 +11,7 @@ SingleConfig::SingleConfig()
 
 void SingleConfig::write(cv::FileStorage& fs) const
 {	
+	/*write to XML */
 	fs<<"{";
 	fs<<"calFileName"<<filename;
 	fs<<"inputDirectory"<<in_directory;

@@ -1,5 +1,7 @@
 #include "Calibration/StereoCalibrator.hpp"
 
+/*expects a stereo configuration file, from which the calibration will be executed
+ * for the bumblee bee camera, and stored into a stereo object */
 
 int main(int argc,char* argv[])
 {
@@ -13,9 +15,11 @@ int main(int argc,char* argv[])
 	std::string in_xml(argv[1]);
 	stereo::StereoCalibrator calib(in_xml);
 	
-	stereo::StereoOutput bumblebee_output;
+	stereo::Stereo bumblebee_output;
 	if(calib.calibrate(bumblebee_output))
 	{
+	
+		std::cout<<"Sequence Completed Successfully";
 		
 	}
 	else
@@ -23,15 +27,5 @@ int main(int argc,char* argv[])
 		std::cout<<"error, failed to calibrate stereo camera correctly\n";
 		return 1;
 	}
-	 
-	
-	
-//	std::cout<<calib.config_.compute_left_;
-	//stereo::StereoCalibrator cal(leftxml,rightxml);
-	
-	//std::string indir(argv[1]);
-	//SingleCalibrator currentCal(indir);
-	//currentCal.configuration_.print();
-	
 	return 0;
 }

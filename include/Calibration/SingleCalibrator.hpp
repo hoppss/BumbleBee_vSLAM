@@ -11,6 +11,9 @@
 
 namespace stereo
 {
+	/* Single Camera Calibrator 
+	 * A class that uses a single camera configuration to calibrate a camera, and save it to the
+	 * SingleOutput data structure for further processing */
 class SingleCalibrator
 {
 	private:

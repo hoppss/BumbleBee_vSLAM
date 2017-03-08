@@ -1,5 +1,9 @@
 #include "Calibration/StereoCalibrator.hpp"
-
+/**
+ * 
+ * Generates a stereo configuration file at the specified directory
+ * given the SingleOutput XML files of precalibrated cameras
+ * i.e. assuming each camera is calibrated individually beforehand*/
 
 int main(int argc,char* argv[])
 {
@@ -45,6 +49,10 @@ int main(int argc,char* argv[])
 	bumble_config.max_count_=2000;
 	bumble_config.count_criteria_=true;
 	bumble_config.eps_critera_=true;
+	
+
+	bumble_config.StereoName="BumbleBeeConfig.xml";
+	bumble_config.outputDirectory="/media/ubuntu/SD_CARD/ConfigurationFiles";
 	
 	
 	fs.open(outdir,cv::FileStorage::WRITE);

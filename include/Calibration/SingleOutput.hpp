@@ -31,7 +31,6 @@ class SingleOutput
 		 * it corresponds with foundCorners and indivNames i.e accessing element [2] should be 
 		 * all the information associated with an individual image...the corners found, the full directory
 		 * and the individual name of the image file used*/
-		Single calibration;//TODO create a Calibration object to be used in the real time application
 		double rms_meas;// Root mean square error of the calibration
 		cv::Mat measured_k;//intrinsic camera matrix estimated K
 		cv::Mat measured_d;//intrinsic distortion co efficients D
@@ -39,6 +38,7 @@ class SingleOutput
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		friend class StereoOutput;
+		friend class StereoCalibrator;
 	
 };
 

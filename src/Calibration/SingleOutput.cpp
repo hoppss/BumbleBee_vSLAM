@@ -28,13 +28,14 @@ void SingleOutput::read(const cv::FileNode& node)
 		cv::FileNodeIterator point_it,point_end;
 		std::string fulldir,indivN;
 		
-		point_it=(*meas_it)["measured_points"].begin();
-		point_end=(*meas_it)["measured_points"].end();
+		point_it=(*meas_it)["measured_points"].begin();//assign the point iterator to the first element of measured points
+		point_end=(*meas_it)["measured_points"].end(); //get the last element
 		
-		fulldir=std::string((*meas_it)["nm"]);
+		fulldir=std::string((*meas_it)["nm"]);//assign full directory of image
 		indivN=std::string((*meas_it)["indiv"]);
-		std::vector<cv::Point2f> foundPoints;
+		std::vector<cv::Point2f> foundPoints;//found points of the checkerboard for an individual image
 		
+		/*create a vector of found points */
 		for(;point_it!=point_end;++point_it)
 		{
 			cv::Point2f tempPoint;
@@ -51,7 +52,7 @@ void SingleOutput::read(const cv::FileNode& node)
 
 void SingleOutput::write(cv::FileStorage& fs) const
 {
-	
+	/*write to xml files */
 	fs<<"{";
 	fs<<"configuration"<<conf_;
 	fs<<"rms"<<rms_meas;

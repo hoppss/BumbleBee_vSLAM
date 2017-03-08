@@ -28,6 +28,9 @@ void StereoConfig::read(const cv::FileNode& node)
 	node["max_count"]>>max_count_;
 	node["count_criteria"]>>count_criteria_;
 	node["eps_criteria"]>>eps_critera_;
+
+	node["StereoName"]>>StereoName;
+	node["outputDirectory"]>>outputDirectory;
 	
 	if(compute_left_)
 	{
@@ -63,6 +66,10 @@ void StereoConfig::write(cv::FileStorage& fs) const
 	fs<<"max_count"<<max_count_;
 	fs<<"count_criteria"<<count_criteria_;
 	fs<<"eps_criteria"<<eps_critera_;
+
+	fs<<"StereoName"<<StereoName;
+	fs<<"outputDirectory"<<outputDirectory;
+
 	if(compute_left_)
 	{
 		fs<<"leftConfig"<<config_left_;
@@ -112,6 +119,8 @@ void StereoConfig::getMatchesOverlap(std::vector< std::vector< cv::Point2f > >& 
 
 std::vector< std::string > StereoConfig::removePrefixes(std::vector< std::string > input)
 {
+	/* removes all the prefixes in front of the image names up to the last underscore
+	 * Note:: DataSet must adhere to these naming conventions */
 	std::vector< std::string > Ans;
 	for(int index=0;index<input.size();index++)
 	{
@@ -122,6 +131,68 @@ std::vector< std::string > StereoConfig::removePrefixes(std::vector< std::string
 	}
 	return Ans;
 }
+
+int StereoConfig::getCalibrationFlags()
+{
+		/*combines all the calibration flags into one single number to be 
+	 * passed to opencv calibrate function*/
+	int flags= 0;
+	if(calib_fix_intrinsic_)
+	{
+		flags+=CV_CALIB_FIX_INTRINSIC;
+	}
+	if(calib_guess_intrinsic_)
+	{
+		flags+=CV_CALIB_USE_INTRINSIC_GUESS;
+	}
+	if(calib_fix_principal_)
+	{
+		flags+=CV_CALIB_FIX_PRINCIPAL_POINT;
+	}
+	if(calib_fix_focal_)
+	{
+		flags+=CV_CALIB_FIX_FOCAL_LENGTH;
+	}
+	if(calib_fix_aspect_)
+	{
+		flags+=CV_CALIB_FIX_ASPECT_RATIO;
+	}
+	if(calib_same_focal_)
+	{
+		flags+=CV_CALIB_SAME_FOCAL_LENGTH;
+	}
+	if(calib_zero_tangent_)
+	{
+		flags+=CV_CALIB_ZERO_TANGENT_DIST;
+	}
+	//if(calib_fix_dist_)
+	//{
+		//flags+=CV_CALIB_CB_NORMALIZE_IMAGE;
+//	} //TODO add all the distortion coefficient options
+	if(calib_rational_model_)
+	{
+		flags+=CV_CALIB_RATIONAL_MODEL;
+	}
+	
+	return flags;
+}
+
+int StereoConfig::getTerminationFlags()
+{
+	int termination=0;
+	if(count_criteria_)
+	{
+		termination+=cv::TermCriteria::COUNT;
+	}
+	if(eps_critera_)
+	{
+		termination+=cv::TermCriteria::EPS;
+	}
+	return termination;
+}
+
+
+
 
 
 	

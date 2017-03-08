@@ -25,7 +25,7 @@ StereoCalibrator::StereoCalibrator(StereoConfig config)
 }
 
 
-bool StereoCalibrator::calibrate(StereoOutput& output)
+bool StereoCalibrator::calibrate(Stereo& output)
 {
 	bool Success=false;
 	if(config_.compute_left_)
@@ -58,7 +58,7 @@ bool StereoCalibrator::calibrate(StereoOutput& output)
 			}
 			cv::destroyWindow("correspondences");
 		}
-
+		//TODO adjust method to include guesses at the internal configuration
 		double error;
 		cv::Mat tempR,tempT,tempE,tempF;
 		error=cv::stereoCalibrate(getVectorBoardCoordinates(leftFoundPoints.size()),
@@ -66,10 +66,61 @@ bool StereoCalibrator::calibrate(StereoOutput& output)
 												config_.output_left_.measured_k,config_.output_left_.measured_d,
 												config_.output_right_.measured_k,config_.output_right_.measured_d,
 												config_.output_left_.calibration_size,
-												tempR,tempT,tempE,tempF);
+												tempR,tempT,tempE,tempF,
+												cv::TermCriteria(config_.getTerminationFlags(),config_.termination_error_,config_.max_count_),
+												config_.getCalibrationFlags());
 		std::cout<<"-----\nCalibration Successfull\nstereo error : "<<error<<"\n----\n";
 		std::cout<<"BaseLine:\t"<<tempR<<"\t"<<tempT<<std::endl;
 		std::cout<<"EpiPolar Config\tF:"<<tempF<<"\tE:"<<tempE<<std::endl;
+		
+		cv::Mat pLeft,pRight,Rleft,Rright,Qmap; //rectification parameter outputs
+		if(config_.compute_rectify_)
+		{
+			//TODO rectify and compute mapping 
+		}
+		
+		
+		
+
+		Isometry leftCoord,rightCoord;
+		
+		leftCoord.setIdentity();
+		rightCoord.setRT(tempR,tempT);
+		rightCoord.invertThis();//inverting because we want coordinate as seen by the left camera, the origin
+		
+		Single leftCamera(config_.output_left_.measured_k,
+											config_.output_left_.measured_d,
+											leftCoord);
+		leftCamera.RMS_Error=config_.output_left_.rms_meas;
+		Single rightCamera(config_.output_right_.measured_k,
+											 config_.output_right_.measured_d,
+											 rightCoord);
+		rightCamera.RMS_Error=config_.output_right_.rms_meas;
+		
+		output.cam_left_=leftCamera;
+		output.cam_right_=rightCamera;
+		tempE.copyTo(output.essential_);
+		tempF.copyTo(output.fundamental_);
+		output.RMS_Error=error;
+		printDebug("Creating Directories",true);
+		//create the output directory
+		std::stringstream command;
+		std::string char_command;
+		command.str("");
+		command<<"mkdir -p "<<config_.outputDirectory;
+		char_command=command.str();
+		system(char_command.c_str());
+		
+		std::string namefile;
+		namefile=config_.outputDirectory;
+		namefile+="/";
+		namefile+=config_.StereoName;
+		
+		cv::FileStorage fs(namefile,cv::FileStorage::WRITE);
+		fs<<"stereocalibration"<<output;
+		fs.release();
+		std::cout<<"configuratoin saved to "<<namefile<<std::endl;
+		
 		
 		
 		Success=true;

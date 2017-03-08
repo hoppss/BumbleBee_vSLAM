@@ -1,4 +1,4 @@
-#ifndef CAMERA_INFO_SINGLE_HEADER_HPP
+   #ifndef CAMERA_INFO_SINGLE_HEADER_HPP
 #define CAMERA_INFO_SINGLE_HEADER_HPP
 
 #include "DataStructures/Transforms/Isometry.hpp"
@@ -26,11 +26,8 @@ class Single
 		//TODO gen ideal P
 
 	protected:
+				friend class StereoCalibrator;
 				friend class Stereo;
-				friend class Calibrator;
-				friend class StereoCamera;
-				friend class SingleOutput;
-				friend class StereoOutput;
 
 };
 

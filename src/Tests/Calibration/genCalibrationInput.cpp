@@ -3,6 +3,10 @@
 int main(int argc, char * argv[])
 {
 	using namespace stereo;
+	/*Creates the single camera calibration configuration file
+	 * to be used for both the left and right bumblebee Cameras.
+	 * Must be edited or the xml file directly modified if the directories
+	 * of each set of images is moved*/
 	
 	if(argc!=3)
 	{
