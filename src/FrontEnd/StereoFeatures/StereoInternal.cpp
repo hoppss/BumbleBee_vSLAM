@@ -24,5 +24,20 @@ void StereoInternal::setCameraInfo(std::string configuration_xml)
 	initialized_=true;
 }
 
+int StereoInternal::getScoreMeasure()
+{
+	int Ans;
+	switch(internalDescription_)
+	{
+		case BRIEF_DESCR :
+		{
+			Ans=cv::NORM_HAMMING;
+			break;
+		}
+	}
+	return Ans;
+}
+
+
 	
 }

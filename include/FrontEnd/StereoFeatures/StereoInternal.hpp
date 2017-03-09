@@ -27,7 +27,8 @@ class StereoInternal
 		enum RobustnessCriteria
 		{
 			PREEMPTIVE_REJECTION=1<<0,//reject features using epi poles before description
-			CROSS_CHECK=1<<1
+			CROSS_CHECK=1<<1,
+			POST_REJECTION=1<<2,//reject Features using epi poles post description
 			/*only accept features where the best match is each other ft1
 			 *closest match is ft2, and ft2 closest match is ft1*/ 
 		};
@@ -47,12 +48,14 @@ class StereoInternal
 		enum Options
 		{
 			UNDISTORT_IMAGE=1<<0,
-			STEREO_RECTIFY_IMAGE=1<<1
+			STEREO_RECTIFY_IMAGE=1<<1,
+			ENFORCE_MAX_INITIAL_LIMIT=1<<2 //on first detect, will sort by best initialPoints, and discarded any extra
 		};
 		//image processing settings
 		std::shared_ptr<DetSettings> detector_;
 		cv::Ptr<cv::DescriptorExtractor> descriptor_;
 		float maxRadius_;
+		int maxInitialPoints_;
 		//stereo camera settings
 		MatchMethod internalMatch_;
 		RobustnessCriteria internalRobustness_;
@@ -62,6 +65,7 @@ class StereoInternal
 		/**configuration and loading functions*/
 		void setCameraInfo(Stereo configuration);
 		void setCameraInfo(std::string configuration_xml);
+		int getScoreMeasure();
 		
 		
 		

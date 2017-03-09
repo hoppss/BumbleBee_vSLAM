@@ -8,16 +8,21 @@
 #include <opencv2/highgui.hpp>
 #include <FrontEnd/StereoFeatures/StereoInternal.hpp>
 #include <iostream>
+#include <algorithm>
 
 namespace stereo
 {
 class StereoFeatures
 {
 	private:
+		void preEmptiveRejection(StereoFrame &prunedFrame,cv::Mat fundamental);
+		void postRejection(StereoFrame &prunedFrame,cv::Mat fundamental);
 	public:
 		StereoFeatures();
-		void GetFeatures(cv::Mat image,std::vector<cv::KeyPoint> &output,StereoInternal settings_);
-		void getFrame(StereoFrame &outputFrame);
+		float getFundamentalError(cv::KeyPoint left,cv::KeyPoint right,cv::Mat fundamental);
+		void getTopFeatures(std::vector<cv::KeyPoint> &output,int maxFeatures);
+		void SimpleFeatures(cv::Mat image,std::vector<cv::KeyPoint> &output,StereoInternal settings_);
+		void getFrame(StereoFrame &outputFrame,cv::Mat LeftIn,cv::Mat RightIn,StereoInternal settings_);
 
 };
 	

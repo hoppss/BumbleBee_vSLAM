@@ -12,14 +12,15 @@ int main(int argc, char * argv[])
 	/*Configure front end
 	 */
 	StereoInternal FrontEnd_config;
-	FrontEnd_config.setCameraInfo("/media/ubuntu/SD_CARD/ConfigurationFiles/BumbleBeeConfig.xml");
+	FrontEnd_config.setCameraInfo("/media/ubunntu/SD_CARD/ConfigurationFiles/BumbleBeeConfig.xml");
 	
 	FrontEnd_config.internalDescription_= StereoInternal::BRIEF_DESCR;
 	FrontEnd_config.descriptor_=brief_descr;
 	
 	FrontEnd_config.detector_=brisk_det;
+	FrontEnd_config.maxInitialPoints_=400;
 	
-	FrontEnd_config.internalOptions_=static_cast<StereoInternal::Options>(0);
+	FrontEnd_config.internalOptions_=StereoInternal::Options::ENFORCE_MAX_INITIAL_LIMIT;
 	
 	FrontEnd_config.internalMatch_=StereoInternal::BRUTE_FORCE;
 	
@@ -27,17 +28,19 @@ int main(int argc, char * argv[])
 	
 	FrontEnd_config.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::PREEMPTIVE_REJECTION | 
 																										StereoInternal::CROSS_CHECK);
-	std::cout<<static_cast<int>(FrontEnd_config.internalRobustness_)<<std::endl;
 	StereoFeatures bumbleBee;
 	
 	/** get test images */
-	cv::Mat testImage;
+	cv::Mat testImage,rimage;
 	testImage=cv::imread("/home/ubuntu/l.jpg",cv::IMREAD_GRAYSCALE);
+	rimage=cv::imread("/home/ubuntu/r.jpg",cv::IMREAD_GRAYSCALE);
+
 	
-	std::vector<cv::KeyPoint> mytest;
+	StereoFrame myFrame;
 	
-	bumbleBee.GetFeatures(testImage,mytest,FrontEnd_config);
+	bumbleBee.getFrame(myFrame,testImage,rimage,FrontEnd_config);
 	
-	std::cout<<"kp : "<<mytest.size()<<std::endl;
+	std::cout<<myFrame.matches_.size();
+	
 	return 0;
 }
