@@ -17,8 +17,3 @@ add_library(DataStructures
 target_link_libraries(DataStructures
 	${BUILD_CV_LIB}
 	)
-
-
-
-
-
