@@ -14,6 +14,7 @@ class Single
 		 * 		there Xcam=(iso_^-1)Xworld
 		 * */
 		cv::Mat K_,K_dist_;
+		cv::Mat undistort_map_;
 		void setData(cv::Mat k,cv::Mat dist,Isometry is);
 	public:
 		Single();

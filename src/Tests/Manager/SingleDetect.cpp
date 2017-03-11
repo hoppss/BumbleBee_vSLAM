@@ -1,15 +1,16 @@
-
-#include "FrontEnd/StereoFeatures/StereoFeatures.hpp"
-
+#include "Manager/FWmanager.hpp"
 
 int main(int argc, char * argv[])
 {
 	using namespace stereo;
-		/*create internal matching + det+descr settings
+	FWmanager Man_;
+	
+			/*create internal matching + det+descr settings
 	 */
 	std::shared_ptr<DetSettings> brisk_det(new BRISKdet());
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
-	/*Configure front end
+	
+/*Configure front end
 	 */
 	StereoInternal FrontEnd_config;
 	FrontEnd_config.setCameraInfo("/media/ubuntu/SD_CARD/ConfigurationFiles/BumbleBeeConfig.xml");
@@ -28,19 +29,11 @@ int main(int argc, char * argv[])
 	
 	FrontEnd_config.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::PREEMPTIVE_REJECTION | 
 																										StereoInternal::CROSS_CHECK);
-	StereoFeatures bumbleBee;
-	
-	/** get test images */
-	cv::Mat testImage,rimage;
-	testImage=cv::imread("/home/ubuntu/l.jpg",cv::IMREAD_GRAYSCALE);
-	rimage=cv::imread("/home/ubuntu/r.jpg",cv::IMREAD_GRAYSCALE);
 
 	
-	StereoFrame myFrame;
-	
-	bumbleBee.getFrame(myFrame,testImage,rimage,FrontEnd_config);
-	
-	std::cout<<myFrame.matches_.size();
+	Man_.FrontEnd_config=FrontEnd_config;
+
+	Man_.singleDisplay();
 	
 	return 0;
 }

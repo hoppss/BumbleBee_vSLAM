@@ -4,7 +4,7 @@ namespace stereo{
 SingleCalibrator::SingleCalibrator(std::string configDir)
 {
 	cv::FileStorage in(configDir,cv::FileStorage::READ);
-	in["configuration"]>>configuration_;	
+	in["SingleConfig"]>>configuration_;	
 }
 
 
@@ -30,7 +30,7 @@ void SingleCalibrator::genDirectories()
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/Found";
 		comm.str("");
-		comm<<"mkdir -p "<<fulldir.str(); //make directory and all the sub folders
+		comm<<"mkdir -pv "<<fulldir.str(); //make directory and all the sub folders
 		str_command=comm.str();
 		system(str_command.c_str());
 		full_found=fulldir.str();
@@ -41,7 +41,7 @@ void SingleCalibrator::genDirectories()
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/NotFound";
 		comm.str("");
-		comm<<"mkdir -p "<<fulldir.str();
+		comm<<"mkdir -pv "<<fulldir.str();
 		str_command=comm.str();
 		system(str_command.c_str());
 		full_not_found=fulldir.str();
@@ -54,7 +54,7 @@ void SingleCalibrator::genDirectories()
 		fulldir.str("");
 		fulldir<<configuration_.out_directory<<"/Drawn";
 		comm.str("");
-		comm<<"mkdir -p "<<fulldir.str();
+		comm<<"mkdir -pv "<<fulldir.str();
 		str_command=comm.str();
 		system(str_command.c_str());
 		full_drawn=fulldir.str();
@@ -64,7 +64,7 @@ void SingleCalibrator::genDirectories()
 	fulldir.str("");
 	fulldir<<configuration_.out_directory;
 	comm.str("");
-	comm<<"mkdir -p "<<fulldir.str();
+	comm<<"mkdir -pv "<<fulldir.str();
 	str_command=comm.str();
 	system(str_command.c_str());
   msgs_<<fulldir.str();
@@ -81,6 +81,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 	outputcam.foundCorners.clear();
 	outputcam.fullDirNames.clear();
 	outputcam.indivNames.clear();
+	outputcam.remapped_corners.clear();
 	cv::Size cal_size; //image size
 	tempNames.clear();//holds all the input image directory names
 	bool Success; //holds return value
@@ -142,6 +143,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 				}
 				/* copy found corners and all the image information to the outputcam */
 				outputcam.indivNames.push_back(tempNames.at(dirIndex)); 
+				outputcam.calibration_size=cal_size;
 				std::stringstream fFile;
 				fFile<<configuration_.in_directory<<"/"<<tempNames.at(dirIndex);
 				outputcam.fullDirNames.push_back(fFile.str());
@@ -178,10 +180,73 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 		std::vector<cv::Mat> tempR,tempT;//dummy variables
 		cv::Mat tempk,tempd;
 		std::cout<<"Calibrating Camera\n";
-		outputcam.rms_meas=cv::calibrateCamera(configuration_.genSetBoardCoordinate(outputcam.foundCorners.size()),
+		if(configuration_.compute_rational_model)
+		{
+			outputcam.rms_meas=cv::calibrateCamera(configuration_.genSetBoardCoordinate(outputcam.foundCorners.size()),
+																				outputcam.foundCorners,
+																				cal_size,
+																				outputcam.measured_k,outputcam.measured_d,tempR,tempT,CV_CALIB_RATIONAL_MODEL);
+		}
+		else
+		{
+			outputcam.rms_meas=cv::calibrateCamera(configuration_.genSetBoardCoordinate(outputcam.foundCorners.size()),
 																				outputcam.foundCorners,
 																				cal_size,
 																				outputcam.measured_k,outputcam.measured_d,tempR,tempT);
+		}
+		/*Perform undistort and remapping calculations*/
+		
+		
+		cv::Mat r_ident=cv::Mat::eye(3,3,CV_32FC1);
+		cv::initUndistortRectifyMap(outputcam.measured_k,outputcam.measured_d,
+																r_ident,
+															  outputcam.measured_k,outputcam.calibration_size,
+															  CV_32FC1,outputcam.undist_mapping_x,outputcam.undist_mapping_y);
+		
+		cv::Mat original_img,undistorted_img;
+		
+		for(int index=0;index<outputcam.fullDirNames.size();index++)
+			{
+				getImage(index,original_img);
+				undistorted_img=cv::Mat(original_img.size(),original_img.type());
+				cv::remap(original_img,undistorted_img,
+								outputcam.undist_mapping_x,outputcam.undist_mapping_y,
+								CV_INTER_LINEAR);	
+				std::vector<cv::Point2f> newPoints;
+				
+
+				bool newFound=false;
+				if(getCheckerBoard(undistorted_img,newPoints))
+				{
+					outputcam.undistortDirNames.push_back(outputcam.fullDirNames.at(index));
+					outputcam.remapped_corners.push_back(newPoints);
+					newFound=true;
+				}
+				else
+				{
+					std::cout<<"rectified checkerboard not found\n";
+				}
+				
+				if(configuration_.displayUndistorted)
+				{
+					cv::namedWindow("original",CV_WINDOW_NORMAL);
+					cv::namedWindow("undistorted",CV_WINDOW_NORMAL);
+					
+					if((configuration_.displayMapping)&&(newFound))
+					{
+							cv::cvtColor(undistorted_img,undistorted_img,cv::COLOR_GRAY2BGR);
+							cv::drawChessboardCorners(undistorted_img,configuration_.getBoard(),newPoints,newFound);
+					}
+				
+					cv::imshow("undistorted",undistorted_img);
+					cv::imshow("original",original_img);
+					cv::waitKey(0);
+				}
+
+		}
+		
+		cv::destroyAllWindows();
+		
 		
 		msgs_.str("");
 		msgs_<<"calibration Error : "<<outputcam.rms_meas<<std::endl;
@@ -197,7 +262,7 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 		outfile+=".xml";
 		
 		cv::FileStorage fs(outfile,cv::FileStorage::WRITE);
-		fs<<configuration_.filename<<outputcam;
+		fs<<"SingleOutput"<<outputcam;
 		fs.release();
 		Success=true;
 	}
@@ -206,13 +271,62 @@ bool SingleCalibrator::calibrate(SingleOutput &outputcam)
 
 }
 
+void SingleCalibrator::undistortPoint(cv::Point2f in, cv::Point2f& out,SingleOutput calib)
+{
+	float r2=in.x*in.x+in.y*in.y;
+	float numerator,denominator,combined;
+	numerator=1+calib.measured_d.at<float>(0,0)*r2+calib.measured_d.at<float>(0,1)*r2*r2+calib.measured_d.at<float>(0,4)*r2*r2*r2;
+	denominator=1+calib.measured_d.at<float>(0,5)*r2+calib.measured_d.at<float>(0,6)*r2*r2+calib.measured_d.at<float>(0,7)*r2*r2*r2;
+	combined=numerator/denominator;
+	/*new x position*/
+	float x2 =in.x*combined+2*calib.measured_d.at<float>(0,2)*in.x*in.y+calib.measured_d.at<float>(0,3)*(r2+2*in.x*in.x);
+	
+//	float xNew=(in.x)*()/()
+	
+}
+
+
 bool SingleCalibrator::getCheckerBoard(cv::Mat input, std::vector< cv::Point2f >& output)
 {
 	/*find and store the checkerboard points*/
 	bool found=cv::findChessboardCorners(input,
 																	configuration_.getBoard(),output,
 																  configuration_.getCalibrationFlags());
+	if((!found)&&(configuration_.robustCheckerBoard))
+	{
+		found=robustCheckerBoard(input,output);
+	}
+	
 	return found;
+}
+
+bool SingleCalibrator::robustCheckerBoard(cv::Mat input, std::vector< cv::Point2f >& output)
+{
+	bool found=false;
+	int index=0;
+	while((!found)&&(index<genAllPossibleChess().size()))
+	{
+		output.clear();
+		found=cv::findChessboardCorners(input,
+																	configuration_.getBoard(),output,
+																  genAllPossibleChess().at(index));
+		index++;
+	}
+	return found;
+}
+
+std::vector< int > SingleCalibrator::genAllPossibleChess()
+{
+	std::vector<int> Ans;
+	Ans.push_back(CV_CALIB_CB_NORMALIZE_IMAGE);
+	Ans.push_back(CV_CALIB_CB_FILTER_QUADS);
+	Ans.push_back(CV_CALIB_CB_ADAPTIVE_THRESH);	
+	Ans.push_back(CV_CALIB_CB_NORMALIZE_IMAGE|CV_CALIB_CB_FILTER_QUADS);
+	Ans.push_back(CV_CALIB_CB_NORMALIZE_IMAGE|CV_CALIB_CB_ADAPTIVE_THRESH);
+	Ans.push_back(CV_CALIB_CB_FILTER_QUADS|CV_CALIB_CB_ADAPTIVE_THRESH);
+	Ans.push_back(CV_CALIB_CB_NORMALIZE_IMAGE|CV_CALIB_CB_FILTER_QUADS|CV_CALIB_CB_ADAPTIVE_THRESH);
+
+	return Ans;
 }
 
 

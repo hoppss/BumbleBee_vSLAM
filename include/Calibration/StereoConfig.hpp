@@ -29,7 +29,13 @@ class StereoConfig
 		bool calib_fix_aspect_;
 		bool calib_same_focal_;
 		bool calib_zero_tangent_;
-		bool calib_fix_dist_;
+		bool calib_fix_dist_; //for compatability
+		bool calib_fix_k1_;
+		bool calib_fix_k2_;
+		bool calib_fix_k3_;
+		bool calib_fix_k4_;
+		bool calib_fix_k5_;
+		bool calib_fix_k6_;
 		bool calib_rational_model_;
 		double termination_error_;
 		int max_count_;

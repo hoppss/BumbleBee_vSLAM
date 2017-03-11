@@ -23,7 +23,8 @@ class StereoFeatures
 		void getTopFeatures(std::vector<cv::KeyPoint> &output,int maxFeatures);
 		void SimpleFeatures(cv::Mat image,std::vector<cv::KeyPoint> &output,StereoInternal settings_);
 		void getFrame(StereoFrame &outputFrame,cv::Mat LeftIn,cv::Mat RightIn,StereoInternal settings_);
-
+		void imageRectification(cv::Mat left,cv::Mat right,cv::Mat &outLeft,cv::Mat &outRight,bool StereoRect);
+		//TODO RANSAC rejection
 };
 	
 }

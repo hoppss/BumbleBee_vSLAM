@@ -33,9 +33,12 @@ int main(int argc, char * argv[])
 	debug.cal_adaptive=true;
 	debug.cal_filter=true;
 	debug.cal_normalize=false;
+	debug.compute_rational_model=true;
+	debug.displayMapping=false;
+	debug.displayUndistorted=false;
 
 	cv::FileStorage fs_l(std::string(argv[1]),cv::FileStorage::WRITE);
-	fs_l<<"configuration"<<debug;
+	fs_l<<"SingleConfig"<<debug;
 	fs_l.release();
 	
 	SingleConfig Rightdebug;
@@ -56,47 +59,14 @@ int main(int argc, char * argv[])
 	Rightdebug.cal_adaptive=true;
 	Rightdebug.cal_filter=true;
 	Rightdebug.cal_normalize=false;
+	Rightdebug.compute_rational_model=true;
+	Rightdebug.displayMapping=false;
+	Rightdebug.displayUndistorted=false;
 
 	cv::FileStorage fs_r(std::string(argv[2]),cv::FileStorage::WRITE);
-	fs_r<<"configuration"<<Rightdebug;
+	fs_r<<"SingleConfig"<<Rightdebug;
 	fs_r.release();
-	
-	
 
-	
-//	cv::FileStorage f("/media/ubuntu/SD_CARD/calibration/in.xml",cv::FileStorage::WRITE);
-//	f<<"configuration"<<debug;
-//	f.release();
-	/*
-	cv::FileStorage fsa("/media/ubuntu/SD_CARD/calibration/in.xml",cv::FileStorage::READ);
-	
-	SingleConfig a;
-	fsa["configuration"]>>a;
-	
-	std::cout<<a.filename;
-	fsa.release();*/
-/*	std::string in="/media/ubuntu/SD_CARD/calibration/right";
-	std::string outfold="/media/ubuntu/SD_CARD/calibration";
-	std::string  out="output";
-	std::string deb="debug";
-	std::string pref="file_";
-	bool fullDebug=true;
-	int patternsize_rows=12;
-	int patternsize_cols=10;
-	int squareSize=37;
-	int un=SingleOutput::mm;
-	
-
-	SingleOutput left;
-	
-	left.setMetaData(pref,out,deb);
-	
-	int debugConf=SingleOutput::debugInfo;
-	
-	std::cout<<"debug info- "<<std::bitset<6>(debugConf)<<std::endl;
-	left.calibrateCamera(in,outfold,patternsize_rows,patternsize_cols,squareSize,un,debugConf);
-
-	*/
 	
 	return 0;
 }

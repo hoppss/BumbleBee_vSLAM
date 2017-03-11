@@ -61,6 +61,13 @@ void StereoConfig::write(cv::FileStorage& fs) const
 	fs<<"same_focal"<<calib_same_focal_;
 	fs<<"zero_tangent"<<calib_zero_tangent_;
 	fs<<"fix_dist"<<calib_fix_dist_;
+	fs<<"fix_k1"<<calib_fix_k1_;
+	fs<<"fix_k2"<<calib_fix_k2_;
+	fs<<"fix_k3"<<calib_fix_k3_;
+	fs<<"fix_k4"<<calib_fix_k4_;
+	fs<<"fix_k5"<<calib_fix_k5_;
+	fs<<"fix_k6"<<calib_fix_k6_;
+	
 	fs<<"rational_model"<<calib_rational_model_;
 	fs<<"termination_err"<<termination_error_;
 	fs<<"max_count"<<max_count_;

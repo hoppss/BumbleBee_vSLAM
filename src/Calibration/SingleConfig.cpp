@@ -27,9 +27,12 @@ void SingleConfig::write(cv::FileStorage& fs) const
 	fs<<"saveDrawn"<<saveDrawn;
 	fs<<"displayFound"<<displayFound;
 	fs<<"displayNotFound"<<displayNotFound;
+	fs<<"displayUndistorted"<<displayUndistorted;
+	fs<<"displayMapping"<<displayMapping;
 	fs<<"cal_adapt"<<cal_adaptive;
 	fs<<"cal_norm"<< cal_normalize;
 	fs<<"cal_filter"<<cal_filter;
+	fs<<"rational_model"<<compute_rational_model;
 	fs<<"}";
 
 }
@@ -54,9 +57,12 @@ void SingleConfig::read(const cv::FileNode& node)
 	node["saveDrawn"]>>saveDrawn;
 	node["displayFound"]>>displayFound;
 	node["displayNotFound"]>>displayNotFound;
+	node["displayUndistorted"]>>displayUndistorted;
+	node["displayMapping"]>>displayMapping;
 	node["cal_adapt"]>>cal_adaptive;
 	node["cal_norm"]>> cal_normalize;
 	node["cal_filter"]>>cal_filter;
+	node["rational_model"]>>compute_rational_model;
 }
 
 void SingleConfig::print()
@@ -90,6 +96,8 @@ void SingleConfig::print()
 	std::cout<<"Debug info\t"<<debugInfo<<std::endl;
 	std::cout<<"saveFound\t"<<saveFound<<std::endl;
 	std::cout<<"saveNotFound\t"<<saveNotFound<<std::endl;
+	std::cout<<"displayUndistort\t"<<displayUndistorted<<std::endl;
+	std::cout<<"displayMap\t"<<displayMapping<<std::endl;
 	std::cout<<"robustCheckerBoard\t"<<robustCheckerBoard<<std::endl;
 	std::cout<<"saveDrawn\t"<<saveDrawn<<std::endl;
 	std::cout<<"displayNotFound\t"<<displayNotFound<<std::endl;
@@ -97,6 +105,7 @@ void SingleConfig::print()
 	std::cout<<"cal_adapt\t"<<cal_adaptive<<std::endl;
 	std::cout<<"cal_norm\t"<<cal_normalize<<std::endl;
 	std::cout<<"cal_filter\t"<<cal_filter<<std::endl;
+	std::cout<<"rational_model\t"<<compute_rational_model<<std::endl;
 }
 
 cv::Size SingleConfig::getBoard()
@@ -121,6 +130,10 @@ int SingleConfig::getCalibrationFlags()
 	if(cal_normalize)
 	{
 		flags+=CV_CALIB_CB_NORMALIZE_IMAGE;
+	}
+	if(compute_rational_model)
+	{
+		flags+=CV_CALIB_RATIONAL_MODEL;
 	}
 	return flags;
 }

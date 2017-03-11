@@ -11,6 +11,7 @@ FireWire::FireWire()
 	
 }
 
+
 bool FireWire::scanNewCamera(FireWireSettings &newSettings)
 {
 	bool Error_=true;
@@ -228,6 +229,7 @@ void FireWire::closeAndFreeMem()
 	{
 		std::cerr<<"Cannot stop capture -error- "<<dc1394_error_get_string(capture)<<std::endl;	
 	}
+	std::cout<<"DC1394 Camera released"<<std::endl;
 
 }
 

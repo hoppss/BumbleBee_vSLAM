@@ -17,14 +17,17 @@ namespace stereo
 class SingleCalibrator
 {
 	private:
+		void undistortPoint(cv::Point2f in,cv::Point2f &out,SingleOutput calib);
 		void genDirectories();
 		std::string full_drawn,full_found,full_not_found;
 		std::vector<std::string> tempNames;
+		std::vector<int> genAllPossibleChess();//generates all the
 		bool genImageList();
 		void debugOut(std::string msg,bool newline);
 		void getImage(int index,cv::Mat &output);
 		std::stringstream msgs_;
 		bool getCheckerBoard(cv::Mat input,std::vector<cv::Point2f> &output);
+		bool robustCheckerBoard(cv::Mat input,std::vector<cv::Point2f> &output);
 	public:
 		SingleConfig configuration_;
 		SingleCalibrator(std::string configDir);

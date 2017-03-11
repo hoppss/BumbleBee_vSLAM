@@ -1,10 +1,13 @@
 
 add_library(Manager 
 	PsuedoManager.cpp
+	FWmanager.cpp
 	)
 	
 target_link_libraries(Manager  
-	DataStructures
+	Analysis
+	VidStream
+	FrontEnd
 	)
 
 #add_library(DataStructures

@@ -9,7 +9,7 @@ FireWireSettings::FireWireSettings()
 		frame_rate=DC1394_FRAMERATE_15;
 		video_mode=DC1394_VIDEO_MODE_1024x768_MONO16;
 		color_coding=DC1394_COLOR_CODING_MONO16;
-		n_buffer=2;
+		n_buffer=8;
 }
 
 void FireWireSettings::printConfig(dc1394featureset_t set)

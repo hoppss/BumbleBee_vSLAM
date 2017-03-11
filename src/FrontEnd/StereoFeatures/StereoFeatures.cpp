@@ -65,13 +65,17 @@ void StereoFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn, cv::Mat 
 
 void StereoFeatures::getTopFeatures(std::vector< cv::KeyPoint >& output, int maxFeatures)
 {
-	std::sort(output.begin(),output.end(),[](cv::KeyPoint a, cv::KeyPoint b) { return a.response > b.response; });
-	output.erase(output.begin()+maxFeatures,output.end());
+	if(output.size()>maxFeatures) //only remove if it is bigger than the maxfeatures
+	{
+		std::sort(output.begin(),output.end(),[](cv::KeyPoint a, cv::KeyPoint b) { return a.response > b.response; });
+		output.erase(output.begin()+maxFeatures,output.end());
+	}
 }
 
 
 void StereoFeatures::postRejection(StereoFrame& prunedFrame,cv::Mat fundamental)
 {
+	//TODO
 	std::vector<cv::DMatch>::iterator current_match;
 	current_match=prunedFrame.matches_.begin();
 	while(current_match!=prunedFrame.matches_.end())
@@ -81,8 +85,16 @@ void StereoFeatures::postRejection(StereoFrame& prunedFrame,cv::Mat fundamental)
 		
 		
 	}
-	
 }
+
+
+void StereoFeatures::imageRectification(cv::Mat left, cv::Mat right, cv::Mat &outLeft, cv::Mat &outRight, bool StereoRect)
+{
+		
+}
+
+
+
 
 
 

@@ -35,6 +35,12 @@ class SingleOutput
 		cv::Mat measured_k;//intrinsic camera matrix estimated K
 		cv::Mat measured_d;//intrinsic distortion co efficients D
 		cv::Size calibration_size;//calibration image size
+		/***measured original intrinsics*/
+		cv::Mat undist_mapping_x;//map 1
+		cv::Mat undist_mapping_y;//map2
+		std::vector< std::vector<cv::Point2f> > remapped_corners;
+		std::vector<std::string> undistortDirNames;
+		
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		friend class StereoOutput;

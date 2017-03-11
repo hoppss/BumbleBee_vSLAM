@@ -17,7 +17,9 @@
 /*
  * A configuration Class for an individual camera,
  * it specifies where to find the images, where to save them, 
- * and a few other helper functions for the calibration itself*/
+ * and a few other helper functions for the calibration itself.
+ Always assum that no prior information is known about the camera i.e.
+ no initial guesses*/
 namespace stereo
 {
 std::vector< std::vector< cv::Point3f > > getChessPoints(cv::Size board, double square_size, int n);	
@@ -44,10 +46,13 @@ class SingleConfig{
 		bool robustCheckerBoard;//TODO 
 		bool displayFound;//true if each found checkerboard will be displayed in the program
 		bool displayNotFound;//true if each image where no checkerboard is found will be displayed
+		bool displayUndistorted;//show the undistortion image according to k1 ,k2 etc
+		bool displayMapping;//if show undistorted, also shows the mapping of points from old to new
 		/*Calibration flags for a single camera configuration*/
 		bool cal_adaptive;
 		bool cal_normalize;
 		bool cal_filter;
+		bool compute_rational_model;
 		calUnits unit;//What units is the size of the squares given in
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);

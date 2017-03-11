@@ -2,13 +2,13 @@
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/DataStructures)
 
-add_executable(CalibrateFromFile
-	CalFF.cpp
-	)
+##add_executable(CalibrateFromFile
+	##CalFF.cpp
+	##)
 	
-target_link_libraries(CalibrateFromFile
-	Calibration
-)
+##target_link_libraries(CalibrateFromFile
+##	Calibration
+##)
 
 
 add_executable(SingleCalibrateFromFile
@@ -27,18 +27,18 @@ add_executable(genCalibrationInput
 	Calibration
 	)
 	
-add_executable(StereoFromFile
-	StereoFF.cpp
-	)
+#add_executable(StereoFromFile
+#	StereoFF.cpp
+#	)
 	
-	target_link_libraries(StereoFromFile
-	Calibration
-	)
+#	target_link_libraries(StereoFromFile
+#	Calibration
+#	)
 	
-add_executable(genStereoCalibrationInput
-	genStereoCalibrationInput.cpp
-)
+#add_executable(genStereoCalibrationInput
+#	genStereoCalibrationInput.cpp
+#)
 
-target_link_libraries(genStereoCalibrationInput
-	Calibration
-	)
+#target_link_libraries(genStereoCalibrationInput
+#	Calibration
+#	)
