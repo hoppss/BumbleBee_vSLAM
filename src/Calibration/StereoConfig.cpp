@@ -12,7 +12,8 @@ void StereoConfig::read(const cv::FileNode& node)
 {
 	node["compute_right"]>>compute_right_;
 	node["compute_left"]>>compute_left_;
-	node["compute_rectify"]>>compute_rectify_;
+	node["compute_rectify_wDist"]>>compute_rectify_wDist_;
+	
 	node["debug_info"]>>debugInfo_;
 	node["showIndiv"]>>showIndividualMatches_;
 	node["fix_intrinsic"]>>calib_fix_intrinsic_;
@@ -22,7 +23,15 @@ void StereoConfig::read(const cv::FileNode& node)
 	node["fix_aspect"]>>calib_fix_aspect_;
 	node["same_focal"]>>calib_same_focal_;
 	node["zero_tangent"]>>calib_zero_tangent_;
-	node["fix_dist"]>>calib_fix_dist_;
+	node["fix_dist"]>>calib_fix_dist_;//TODO erase
+	
+	node["fix_k1"]>>calib_fix_k1_;
+	node["fix_k2"]>>calib_fix_k2_;
+	node["fix_k3"]>>calib_fix_k3_;
+	node["fix_k4"]>>calib_fix_k4_;
+	node["fix_k5"]>>calib_fix_k5_;
+	node["fix_k6"]>>calib_fix_k6_;
+	
 	node["rational_model"]>>calib_rational_model_;
 	node["termination_err"]>>termination_error_;
 	node["max_count"]>>max_count_;
@@ -50,7 +59,7 @@ void StereoConfig::write(cv::FileStorage& fs) const
 	fs<<"{";
 	fs<<"compute_right"<<compute_right_;
 	fs<<"compute_left"<<compute_left_;
-	fs<<"compute_rectify"<<compute_rectify_;
+	fs<<"compute_rectify_wDist"<<compute_rectify_wDist_;
 	fs<<"debug_info"<<debugInfo_;
 	fs<<"showIndiv"<<showIndividualMatches_;	
 	fs<<"fix_intrinsic"<<calib_fix_intrinsic_;
@@ -172,10 +181,30 @@ int StereoConfig::getCalibrationFlags()
 	{
 		flags+=CV_CALIB_ZERO_TANGENT_DIST;
 	}
-	//if(calib_fix_dist_)
-	//{
-		//flags+=CV_CALIB_CB_NORMALIZE_IMAGE;
-//	} //TODO add all the distortion coefficient options
+	if(calib_fix_k1_)
+	{
+		flags+=CV_CALIB_FIX_K1;
+	}
+		if(calib_fix_k2_)
+	{
+		flags+=CV_CALIB_FIX_K2;
+	}
+		if(calib_fix_k3_)
+	{
+		flags+=CV_CALIB_FIX_K3;
+	}
+		if(calib_fix_k4_)
+	{
+		flags+=CV_CALIB_FIX_K4;
+	}
+		if(calib_fix_k5_)
+	{
+		flags+=CV_CALIB_FIX_K5;
+	}
+		if(calib_fix_k6_)
+	{
+		flags+=CV_CALIB_FIX_K6;
+	}
 	if(calib_rational_model_)
 	{
 		flags+=CV_CALIB_RATIONAL_MODEL;

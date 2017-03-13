@@ -15,7 +15,7 @@ class StereoConfig
 		SingleOutput output_left_,output_right_;
 		bool showIndividualMatches_;
 		bool debugInfo_;
-		bool compute_rectify_;
+		bool compute_rectify_wDist_;//if true, computes the stereorectification mapping including the distortion constants
 		bool compute_left_;
 		bool compute_right_;
 		bool saveIndividualCameras;

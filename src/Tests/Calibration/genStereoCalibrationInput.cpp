@@ -20,11 +20,11 @@ int main(int argc,char* argv[])
  	stereo::SingleOutput left,right;
 	cv::FileStorage fs;
 	fs.open(leftxml,cv::FileStorage::READ);
-	fs["leftcal"]>>left;
+	fs["SingleOutput"]>>left;
 	fs.release();
 	
 	fs.open(rightxml,cv::FileStorage::READ);
-	fs["rightcal"]>>right;
+	fs["SingleOutput"]>>right;
 	fs.release();
 	
 	stereo::StereoConfig bumble_config;
@@ -33,17 +33,24 @@ int main(int argc,char* argv[])
 	bumble_config.output_left_=left;
 	bumble_config.output_right_=right;
 	bumble_config.debugInfo_=false;
-	bumble_config.compute_rectify_=false;
+	bumble_config.compute_rectify_wDist_=true;
 	bumble_config.showIndividualMatches_=true;
 	bumble_config.calib_fix_intrinsic_=false;
-	bumble_config.calib_guess_intrinsic_=false;
+	bumble_config.calib_guess_intrinsic_=true;
 	bumble_config.calib_fix_principal_=false;
 	bumble_config.calib_fix_focal_=false;
 	bumble_config.calib_fix_aspect_=false;
 	bumble_config.calib_same_focal_=true;
 	bumble_config.calib_zero_tangent_=false;
-	bumble_config.calib_fix_dist_=false;
-	bumble_config.calib_rational_model_=false;
+	bumble_config.calib_fix_dist_=false;//TODO erase
+	bumble_config.calib_rational_model_=true;
+	bumble_config.calib_fix_k1_=false;
+	bumble_config.calib_fix_k2_=false;
+	bumble_config.calib_fix_k3_=false;
+	bumble_config.calib_fix_k4_=false;
+	bumble_config.calib_fix_k5_=false;
+	bumble_config.calib_fix_k6_=false;
+	
 	
 	bumble_config.termination_error_=1e-06;
 	bumble_config.max_count_=2000;
@@ -56,7 +63,7 @@ int main(int argc,char* argv[])
 	
 	
 	fs.open(outdir,cv::FileStorage::WRITE);
-	fs<<"stereoconfig"<<bumble_config;
+	fs<<"stereoConfig"<<bumble_config;
 	fs.release();	
 	
 	
