@@ -85,7 +85,6 @@ bool StereoCalibrator::calibrate(Stereo& output)
 			{
 				checkCorrespondences(leftFoundPoints.at(temp),rightFoundPoints.at(temp),leftImgDir.at(temp),rightImgDir.at(temp));
 				int Delete=cv::waitKey(0);
-				std::cout<<Delete<<std::endl;
 				if(Delete==32) //if spacebar pushed, remove it
 				{
 					std::cout<<"removing Incorrect Correspondences at index "<<temp<<std::endl;
@@ -101,10 +100,11 @@ bool StereoCalibrator::calibrate(Stereo& output)
 			}
 			cv::destroyWindow("correspondences");
 		}
-		
+		std::cout<<"overLap Found"<<std::endl;
 		cv::Mat tempR,tempT,tempE,tempF;
 		if(config_.calib_guess_intrinsic_)
 		{
+			std::cout<<"Using intrinsic guess"<<std::endl;
 			output.cam_left_.optimized_=true;
 			output.cam_right_.optimized_=true;
 			config_.output_left_.measured_k.copyTo(output.cam_left_.K_optim_);
@@ -121,7 +121,7 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												tempR,tempT,output.essential_,output.fundamental_,
 												cv::TermCriteria(config_.getTerminationFlags(),config_.termination_error_,config_.max_count_),
 												config_.getCalibrationFlags());
-			
+			std::cout<<"Calibrated with RMS: "<<output.RMS_Error<<std::endl;
 			cv::Mat rot=cv::Mat::eye(3,3,CV_64FC1);
 			/*compute new undistort maps*/
 			cv::initUndistortRectifyMap(output.cam_left_.K_optim_,output.cam_left_.dist_optim_,rot,
@@ -142,15 +142,15 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												output.cam_left_.originalImg_,tempR,tempT,
 												output.cam_left_.RectR,output.cam_right_.RectR,
 												output.cam_left_.idealP_,output.cam_right_.idealP_,output.QMap_,
-												0,1,output.Rectsize_,
+												0,-1,output.Rectsize_,
 												&output.cam_left_.ROI_wD_,&output.cam_right_.ROI_wD_);	
 							
 							cv::initUndistortRectifyMap(output.cam_left_.K_optim_,output.cam_left_.dist_optim_,output.cam_left_.RectR,
-																					output.cam_left_.idealP_,output.cam_left_.ROI_wD_.size(),CV_32FC1,
+																					output.cam_left_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																					output.cam_left_.rect_mapx_dist_,output.cam_left_.rect_mapy_dist_);
 							
 							cv::initUndistortRectifyMap(output.cam_right_.K_optim_,output.cam_right_.dist_optim_,output.cam_right_.RectR,
-																					output.cam_right_.idealP_,output.cam_left_.ROI_wD_.size(),CV_32FC1,
+																					output.cam_right_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																					output.cam_right_.rect_mapx_dist_,output.cam_right_.rect_mapy_dist_);
 							
 			}
@@ -159,17 +159,17 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												output.cam_left_.originalImg_,tempR,tempT,
 												output.cam_left_.RectR,output.cam_right_.RectR,
 												output.cam_left_.idealP_,output.cam_right_.idealP_,output.QMap_,
-												0,1,output.Rectsize_,
+												0,-1,output.Rectsize_,
 												&output.cam_left_.ROI_,&output.cam_right_.ROI_);	
 			
 			
 			
 			cv::initUndistortRectifyMap(output.cam_left_.K_optim_,cv::Mat::zeros(5,1,CV_64FC1),output.cam_left_.RectR,
-																	output.cam_left_.idealP_,output.cam_left_.ROI_.size(),CV_32FC1,
+																	output.cam_left_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																	output.cam_left_.rect_mapx_,output.cam_left_.rect_mapy_);
 			
 			cv::initUndistortRectifyMap(output.cam_right_.K_optim_,cv::Mat::zeros(5,1,CV_64FC1),output.cam_right_.RectR,
-																	output.cam_right_.idealP_,output.cam_right_.ROI_.size(),CV_32FC1,
+																	output.cam_right_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																	output.cam_right_.rect_mapx_,output.cam_right_.rect_mapy_);
 			
 			/*compute Isometries*/
@@ -194,6 +194,7 @@ bool StereoCalibrator::calibrate(Stereo& output)
 		
 		else
 		{
+				std::cout<<"Using fixed intrinsic guess"<<std::endl;
 				output.RMS_Error=cv::stereoCalibrate(getVectorBoardCoordinates(leftFoundPoints.size()),
 												leftFoundPoints,rightFoundPoints,
 												output.cam_left_.K_meas_,output.cam_left_.dist_,
@@ -203,6 +204,7 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												cv::TermCriteria(config_.getTerminationFlags(),config_.termination_error_,config_.max_count_),
 												config_.getCalibrationFlags());
 				
+				std::cout<<"Calibrated with RMS: "<<output.RMS_Error<<std::endl;
 				/*using already computed distortion maps because we are not optimzing the intrinsics at all*/
 				/**get stereo settings */
 				
@@ -216,15 +218,15 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												output.cam_left_.originalImg_,tempR,tempT,
 												output.cam_left_.RectR,output.cam_right_.RectR,
 												output.cam_left_.idealP_,output.cam_right_.idealP_,output.QMap_,
-												0,1,output.Rectsize_,
+												0,-1,output.Rectsize_, //always retain all the info and include black pixels with a ROI 
 												&output.cam_left_.ROI_wD_,&output.cam_right_.ROI_wD_);	
 							
 							cv::initUndistortRectifyMap(output.cam_left_.K_meas_,output.cam_left_.dist_,output.cam_left_.RectR,
-																					output.cam_left_.idealP_,output.cam_left_.ROI_wD_.size(),CV_32FC1,
+																					output.cam_left_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																					output.cam_left_.rect_mapx_dist_,output.cam_left_.rect_mapy_dist_);
 							
 							cv::initUndistortRectifyMap(output.cam_right_.K_meas_,output.cam_right_.dist_,output.cam_right_.RectR,
-																					output.cam_right_.idealP_,output.cam_left_.ROI_wD_.size(),CV_32FC1,
+																					output.cam_right_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																					output.cam_right_.rect_mapx_dist_,output.cam_right_.rect_mapy_dist_);
 							
 			}
@@ -233,17 +235,17 @@ bool StereoCalibrator::calibrate(Stereo& output)
 												output.cam_left_.originalImg_,tempR,tempT,
 												output.cam_left_.RectR,output.cam_right_.RectR,
 												output.cam_left_.idealP_,output.cam_right_.idealP_,output.QMap_,
-												0,1,output.Rectsize_,
+												0,-1,output.Rectsize_,
 												&output.cam_left_.ROI_,&output.cam_right_.ROI_);	
 			
 			
 			
 			cv::initUndistortRectifyMap(output.cam_left_.K_meas_,cv::Mat::zeros(5,1,CV_64FC1),output.cam_left_.RectR,
-																	output.cam_left_.idealP_,output.cam_left_.ROI_.size(),CV_32FC1,
+																	output.cam_left_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																	output.cam_left_.rect_mapx_,output.cam_left_.rect_mapy_);
 			
 			cv::initUndistortRectifyMap(output.cam_right_.K_meas_,cv::Mat::zeros(5,1,CV_64FC1),output.cam_right_.RectR,
-																	output.cam_right_.idealP_,output.cam_right_.ROI_.size(),CV_32FC1,
+																	output.cam_right_.idealP_,output.cam_left_.originalImg_,CV_32FC1,
 																	output.cam_right_.rect_mapx_,output.cam_right_.rect_mapy_);
 				/*computeIsometries*/
 			Isometry left,leftRect;
@@ -268,6 +270,7 @@ bool StereoCalibrator::calibrate(Stereo& output)
 
 		
 		std::cout<<"-----\nCalibration Successfull\nstereo error : "<<output.RMS_Error<<"\n----\n";
+		output.printROI();
 		printDebug("Creating Directories",true);
 		//create the output directory
 		std::stringstream command;

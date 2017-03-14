@@ -20,10 +20,10 @@ class Stereo
 		cv::Mat fundamental_,rect_fundamental_;
 		cv::Mat QMap_;
 		double RMS_Error;
-		cv::Size Rectsize_;//calibration
-
+		cv::Size Rectsize_;
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
+		void printROI();
 	protected:
 
 };

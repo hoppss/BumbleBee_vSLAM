@@ -45,6 +45,7 @@ class Single
 	protected:
 				friend class StereoCalibrator;
 				friend class Stereo;
+				friend class StereoDrawing;
 
 };
 
