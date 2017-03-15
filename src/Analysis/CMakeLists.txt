@@ -1,7 +1,6 @@
 
 add_library(Analysis  
-	SimpleFeedback.cpp
-	StereoDrawing.cpp
+	StereoRectifiedFeedback.cpp
 	)
 	
 target_link_libraries(Analysis

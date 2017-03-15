@@ -1,6 +1,8 @@
 
-#include "FrontEnd/StereoFeatures/StereoFeatures.hpp"
+//#include "FrontEnd/StereoFeatures/StereoFeatures.hpp"
 
+#include "FrontEnd/StereoFeatures/StereoRectifiedFeatures.hpp"
+#include "Analysis/StereoRectifiedFeedback.hpp"
 
 int main(int argc, char * argv[])
 {
@@ -11,36 +13,40 @@ int main(int argc, char * argv[])
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
 	/*Configure front end
 	 */
-	StereoInternal FrontEnd_config;
-	FrontEnd_config.setCameraInfo("/media/ubuntu/SD_CARD/ConfigurationFiles/BumbleBeeConfig.xml");
 	
-	FrontEnd_config.internalDescription_= StereoInternal::BRIEF_DESCR;
-	FrontEnd_config.descriptor_=brief_descr;
+	StereoRectifiedFeatures bumbleBee;
+	bumbleBee.default_descriptor_=brief_descr;
+	bumbleBee.default_detector_=brisk_det;
+	bumbleBee.maxInitialPoints_=100;
 	
-	FrontEnd_config.detector_=brisk_det;
-	FrontEnd_config.maxInitialPoints_=400;
+	bumbleBee.internalDescription_=StereoInternal::BRIEF_DESCR;
 	
-	FrontEnd_config.internalOptions_=StereoInternal::Options::ENFORCE_MAX_INITIAL_LIMIT;
+	bumbleBee.internalDetectionOptions_=StereoInternal::DetectionOptions::SIMPLE;
 	
-	FrontEnd_config.internalMatch_=StereoInternal::BRUTE_FORCE;
+	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK|
+																StereoInternal::RobustnessCriteria::PRUNE_INITIAL_SCORE);
 	
-	FrontEnd_config.internalStatistics_=static_cast<StereoInternal::ComputeStatistics>(0);
+	bumbleBee.internalMatch_=StereoInternal::MatchMethod::BRUTE_FORCE;
 	
-	FrontEnd_config.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::PREEMPTIVE_REJECTION | 
-																										StereoInternal::CROSS_CHECK);
-	StereoFeatures bumbleBee;
+	bumbleBee.internalStatistics_=static_cast<StereoInternal::ComputeStatistics>(
+																StereoInternal::KEEP_OUTLIER);
+	
+	bumbleBee.Initialize_("/media/ubuntu/SD_CARD/ConfigurationFiles/BumbleBeeConfig.xml");
+
 	
 	/** get test images */
 	cv::Mat testImage,rimage;
-	testImage=cv::imread("/home/ubuntu/l.jpg",cv::IMREAD_GRAYSCALE);
-	rimage=cv::imread("/home/ubuntu/r.jpg",cv::IMREAD_GRAYSCALE);
+	testImage=cv::imread("/home/ubuntu/ll.ppm",cv::IMREAD_GRAYSCALE);
+	rimage=cv::imread("/home/ubuntu/rr.ppm",cv::IMREAD_GRAYSCALE);
 
 	
 	StereoFrame myFrame;
 	
-	bumbleBee.getFrame(myFrame,testImage,rimage,FrontEnd_config);
+	bumbleBee.getFrame(myFrame,testImage,rimage);
 	
-	std::cout<<myFrame.matches_.size();
+	
+	StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
+
 	
 	return 0;
 }

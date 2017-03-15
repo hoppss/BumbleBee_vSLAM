@@ -6,4 +6,5 @@ add_executable(coarseDetect
 	
 target_link_libraries(coarseDetect
 	FrontEnd
+	Analysis
 )

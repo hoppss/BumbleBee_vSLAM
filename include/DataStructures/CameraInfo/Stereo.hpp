@@ -14,13 +14,13 @@ class Stereo
 	public:
 		Stereo();
 		~Stereo();
-		bool stereo_rectified_withDistort_;//calculated relative to the original image
+		bool stereo_rectified_withDistort_;//calculated relative to the original image //REDUNDANT TODO
 		Single cam_left_,cam_right_;	
-		cv::Mat essential_,rect_essential_;
+		cv::Mat essential_,rect_essential_; //TODO REDUNDANT
 		cv::Mat fundamental_,rect_fundamental_;
 		cv::Mat QMap_;
 		double RMS_Error;
-		cv::Size Rectsize_;
+		cv::Size Rectsize_;//TODO redundant
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);
 		void printROI();

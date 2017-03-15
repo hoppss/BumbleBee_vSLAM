@@ -46,6 +46,9 @@ class Single
 				friend class StereoCalibrator;
 				friend class Stereo;
 				friend class StereoDrawing;
+				friend class StereoRectifiedInternal;
+				friend class StereoInternal;
+				friend class StereoRect;//TODO clean up the unnecesary friend classes
 
 };
 
