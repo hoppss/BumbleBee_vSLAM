@@ -78,8 +78,6 @@ void StereoRectifiedFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn,
 
 void StereoRectifiedFeatures::SimpleFrame(StereoFrame& outputFrame, cv::Mat LeftIn, cv::Mat RightIn)
 {
-	cv::Mat outimage,outimage2;//remove
-	StereoRectifiedFeedback feed(ptr_cal_);
 	
 	cv::Mat lRectified,rRectified;
 	lRectified=cv::Mat(ptr_cal_->L_fMapx_.size(),LeftIn.type());
@@ -128,33 +126,19 @@ void StereoRectifiedFeatures::SimpleFrame(StereoFrame& outputFrame, cv::Mat Left
 	
 	getMatches(outputFrame);
 	
-	cv::drawMatches(limg,outputFrame.leftKP_,rimg,outputFrame.rightKP_,outputFrame.matches_,outimage);
-	
-		cv::namedWindow("a",cv::WINDOW_NORMAL);
-//	cv::namedWindow("b",cv::WINDOW_NORMAL);
-	
-//	cv::drawKeypoints(limg,outputFrame.leftKP_,outimage);
-//	cv::drawKeypoints(limg,outputFrame.leftKP_,outimage2);
-	
-	cv::imshow("a",outimage);
-//	cv::imshow("b",outimage2);
-	
-	
-	
-	
-	
-	/*default_detector_->get
-	
-	settings_.detector_->getFeatures(image,output);
-	if(settings_.internalOptions_&StereoInternal::ENFORCE_MAX_INITIAL_LIMIT)
+	/*robust rejection */
+	if(internalRobustness_&StereoInternal::POST_REJECTION)
 	{
-		getTopFeatures(output,settings_.maxInitialPoints_);
-	}*/
+		epiPoleReject(outputFrame);
+	}
 	
-//	cv::namedWindow("a",cv::WINDOW_NORMAL);
-//	cv::imshow("a",limg);
-	cv::waitKey(0);
-	cv::destroyAllWindows();
+	
+	/* Triangulation */
+	
+	/* estimate Covariance */
+	
+	/*estimate stats + plot images */
+
 	
 }
 
@@ -200,10 +184,112 @@ void StereoRectifiedFeatures::getMatches(StereoFrame& outputFrame)
 	}
 }
 
-
-
-
-
-	
-	
+void StereoRectifiedFeatures::epiPoleReject(StereoFrame& outputFrame)
+{
+	for(int index=0;index<outputFrame.matches_.size();index++)
+	{
+		float rms=epiLineError(outputFrame.leftKP_.at(outputFrame.matches_.at(index).queryIdx).pt,
+											 outputFrame.rightKP_.at(outputFrame.matches_.at(index).trainIdx).pt);
+		if(rms>2*epiThresh_)
+		{
+			/*OUTLIER */
+			if(internalStatistics_&KEEP_OUTLIER)
+			{
+				outputFrame.statistics_.outliers_.push_back(buildStereoKP(outputFrame,index));
+			}
+		}
+		else
+		{
+			outputFrame.outKP_.push_back(buildStereoKP(outputFrame,index));
+		}
+		
+	}
 }
+
+
+StereoKP StereoRectifiedFeatures::buildStereoKP(StereoFrame& output, int Matchindex)
+{
+	StereoKP Ans;
+	Ans.matchScore=output.matches_.at(Matchindex).distance;	
+	Ans.left=output.leftKP_.at(output.matches_.at(Matchindex).queryIdx);
+	Ans.right=output.rightKP_.at(output.matches_.at(Matchindex).trainIdx);
+	output.leftDescrip_.row(Matchindex).copyTo(Ans.leftDescr);
+	output.rightDescrip_.row(Matchindex).copyTo(Ans.rightDescr);
+	
+	return Ans;
+}
+
+float StereoRectifiedFeatures::epiLineError(cv::Point2f left, cv::Point2f right)
+{
+		/*correct for region of interest,
+	 * The original rectified images are row aligned, not the region of interest 
+	 * images which have different sizes*/
+	//left.x+=ptr_cal_->l_ROI_.x;  X is irrelevant to the epi pole line calculation
+	float leftY=left.y+ptr_cal_->l_ROI_.y;
+	float rightY=right.y+ptr_cal_->r_ROI_.y;
+
+	
+	return 2*abs(leftY-rightY);//times two because we rae including both error as seen from the
+	//left image, and the image as seen from the right image,
+	//because they are rectified images, these errors are the same
+
+}
+
+
+
+
+
+
+//void StereoRectifiedFeatures::epiPoleReject(StereoFrame& outputFrame)
+//{
+	//std::vector<cv::DMatch>::iterator currentMatchIt;
+	//currentMatchIt=outputFrame.matches_.begin()+1;
+//	while(currentMatchIt!=outputFrame.matches_.end())
+//	{
+		//bool deleted;
+		//int matchIndex=std::distance(outputFrame.matches_.begin(),currentMatchIt);
+		//cv::Point2f leftp,rightp;
+		//leftp=outputFrame.leftKP_.at(outputFrame.matches_.at(matchIndex).queryIdx).pt;
+		//rightp=outputFrame.rightKP_.at(outputFrame.matches_.at(matchIndex).trainIdx).pt;
+		/*get the matching points rms error*/
+	//	if(rmsError(leftp,rightp)>2*epiThresh_) //2 times epi thresh because we are considering left and right image error
+	//	{
+			/*delete the match ,
+		//	deleted=true;
+	//	}
+	//	else
+	//	{
+	//		deleted=false;
+	//	}
+	//		currentMatchIt++;
+
+	//}
+	
+//}
+//}
+	
+//}
+
+
+
+
+//float StereoRectifiedFeatures::rmsError(const cv::Point2f left,const cv::Point2f right)
+//{
+	/*correct for region of interest,
+	 * The original rectified images are row aligned, not the region of interest 
+	 * images which have different sizes*/
+	//left.x+=ptr_cal_->l_ROI_.x;  X is irrelevant to the epi pole line calculation
+	//float leftY=left.y+ptr_cal_->l_ROI_.y;
+	//float rightY=right.y+ptr_cal_->r_ROI_.y;
+
+	
+	//return 2*abs(leftY-rightY);
+//}
+
+
+
+}
+
+
+	
+	

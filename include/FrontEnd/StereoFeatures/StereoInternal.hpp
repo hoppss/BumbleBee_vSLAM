@@ -57,6 +57,7 @@ class StereoInternal
 		std::shared_ptr<DetSettings> default_detector_;
 		cv::Ptr<cv::DescriptorExtractor> default_descriptor_;
 		float maxRadius_;
+		float epiThresh_;//distance in pixels a point is considered an outlier from the epipolar line
 		int maxInitialPoints_;
 		int n_rows,n_cols;
 		//stereo camera settings

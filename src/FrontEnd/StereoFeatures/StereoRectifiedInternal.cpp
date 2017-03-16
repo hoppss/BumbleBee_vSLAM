@@ -40,6 +40,7 @@ bool StereoRectifiedInternal::LoadCameraSettings(Stereo conf)
 	if(conf.cam_left_.rectified_Wdist&&conf.cam_right_.rectified_Wdist)
 	{
 		ptr_cal_=new StereoRect(conf);
+		epiThresh_=2*conf.RMS_Error;
 		return true;
 	}
 	else

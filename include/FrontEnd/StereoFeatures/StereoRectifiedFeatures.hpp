@@ -12,6 +12,8 @@ namespace stereo
 class StereoRectifiedFeatures : public StereoRectifiedInternal
 
 {
+	private:
+		StereoKP buildStereoKP(StereoFrame &output,int Matchindex);
 	public:
 		StereoRectifiedFeatures();
 		bool Initialize_(std::string directoryXML);
@@ -21,6 +23,8 @@ class StereoRectifiedFeatures : public StereoRectifiedInternal
 		void pruneTopScores(std::vector< cv::KeyPoint >& output, int maxFeatures);
 		void pruneTopScores(std::vector< cv::KeyPoint >& output,std::vector<cv::KeyPoint> &rejected, int maxFeatures);
 		void getMatches(StereoFrame &outputFrame);
+		void epiPoleReject(StereoFrame &outputFrame);
+		float epiLineError(cv::Point2f left,cv::Point2f right);
 };
 	
 }

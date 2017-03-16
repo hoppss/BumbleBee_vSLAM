@@ -2,6 +2,7 @@
 #define STEREO_FRAME_HEADER_HPP
 
 #include "DataStructures/OutputData/StereoFrameStats.hpp"
+#include "DataStructures/OutputData/StereoKP.hpp"
 
 namespace stereo{
 
@@ -13,6 +14,7 @@ class StereoFrame
 		cv::Mat leftDescrip_,rightDescrip_;
 		std::vector<cv::DMatch> matches_;
 		StereoFrameStats statistics_;
+		std::vector<StereoKP> outKP_;
 		//TODO Timings
 };
 }

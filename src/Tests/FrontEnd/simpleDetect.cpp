@@ -24,7 +24,7 @@ int main(int argc, char * argv[])
 	bumbleBee.internalDetectionOptions_=StereoInternal::DetectionOptions::SIMPLE;
 	
 	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK|
-																StereoInternal::RobustnessCriteria::PRUNE_INITIAL_SCORE);
+																StereoInternal::RobustnessCriteria::POST_REJECTION);
 	
 	bumbleBee.internalMatch_=StereoInternal::MatchMethod::BRUTE_FORCE;
 	
@@ -46,7 +46,7 @@ int main(int argc, char * argv[])
 	
 	
 	StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
-
-	
+	feed.showInlierOutlier(testImage,rimage,myFrame);
+	cv::destroyAllWindows();
 	return 0;
 }
