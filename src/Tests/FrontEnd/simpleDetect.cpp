@@ -10,6 +10,9 @@ int main(int argc, char * argv[])
 		/*create internal matching + det+descr settings
 	 */
 	std::shared_ptr<DetSettings> brisk_det(new BRISKdet());
+	brisk_det->setAdjustSettings(0.3,1);
+	brisk_det->setInternalSettings(1,3,1.0);
+	
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
 	/*Configure front end
 	 */
@@ -17,14 +20,13 @@ int main(int argc, char * argv[])
 	StereoRectifiedFeatures bumbleBee;
 	bumbleBee.default_descriptor_=brief_descr;
 	bumbleBee.default_detector_=brisk_det;
-	bumbleBee.maxInitialPoints_=100;
+	bumbleBee.maxInitialPoints_=1300;
 	
 	bumbleBee.internalDescription_=StereoInternal::BRIEF_DESCR;
 	
 	bumbleBee.internalDetectionOptions_=StereoInternal::DetectionOptions::SIMPLE;
 	
-	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK|
-																StereoInternal::RobustnessCriteria::POST_REJECTION);
+	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK);
 	
 	bumbleBee.internalMatch_=StereoInternal::MatchMethod::BRUTE_FORCE;
 	
@@ -39,14 +41,18 @@ int main(int argc, char * argv[])
 	testImage=cv::imread("/home/ubuntu/ll.ppm",cv::IMREAD_GRAYSCALE);
 	rimage=cv::imread("/home/ubuntu/rr.ppm",cv::IMREAD_GRAYSCALE);
 
-	
-	StereoFrame myFrame;
-	
-	bumbleBee.getFrame(myFrame,testImage,rimage);
-	
-	
-	StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
-	feed.showInlierOutlier(testImage,rimage,myFrame);
-	cv::destroyAllWindows();
+	bool stop=false;
+	while(!stop)
+	{
+		StereoFrame myFrame;
+		bumbleBee.getFrame(myFrame,testImage,rimage);
+		stop=!bumbleBee.default_detector_->increment();
+
+		
+		
+		StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
+		feed.showInlier(testImage,rimage,myFrame);
+		cv::destroyAllWindows();
+	}
 	return 0;
 }

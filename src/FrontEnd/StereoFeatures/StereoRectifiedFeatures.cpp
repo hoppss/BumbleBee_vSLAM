@@ -131,6 +131,13 @@ void StereoRectifiedFeatures::SimpleFrame(StereoFrame& outputFrame, cv::Mat Left
 	{
 		epiPoleReject(outputFrame);
 	}
+	else
+	{
+		for(int index=0;index<outputFrame.matches_.size();index++)
+		{
+			outputFrame.outKP_.push_back(buildStereoKP(outputFrame,index));
+		}
+	}
 	
 	
 	/* Triangulation */

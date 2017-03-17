@@ -122,17 +122,17 @@ void StereoRectifiedFeedback::drawStereoKP(StereoKP in, cv::Mat& inputOutput, cv
 	cv::circle(inputOutput,lcorrect,3,col);
 	cv::circle(inputOutput,rcorrect,3,col);
 	cv::line(inputOutput,lcorrect,rcorrect,col,1);
-	/* also draws the distance to the epi polar line for each point*/
+	/* also draws the distance to the epi polar line for each Left point*/
 	cv::Point2f epiPoint;
 	epiPoint=rcorrect;
 	epiPoint.x=lcorrect.x;
 	
 	cv::line(inputOutput,lcorrect,epiPoint,col2,2);
 	
-	epiPoint=lcorrect;
-	epiPoint.x=rcorrect.x;
+//	epiPoint=lcorrect;
+//	epiPoint.x=rcorrect.x;
 	
-	cv::line(inputOutput,rcorrect,epiPoint,col2,2);
+//	cv::line(inputOutput,rcorrect,epiPoint,col2,2);
 	
 }
 
@@ -152,6 +152,21 @@ void StereoRectifiedFeedback::showInlierOutlier(cv::Mat lIn,cv::Mat rIn,StereoFr
 	cv::waitKey(0);
 	cv::destroyWindow("InOut");
 }
+
+void StereoRectifiedFeedback::showInlier(cv::Mat lIn, cv::Mat rIn, StereoFrame out)
+{
+	cv::Mat lRect,rRect,combined;
+	RectifyImg(lIn,rIn,combined);
+	
+	cv::cvtColor(combined,combined,cv::COLOR_GRAY2RGB);
+	drawInliers(combined,out,cv::Scalar(0,255,0),cv::Scalar(255,0,0));
+	std::cout<<"totalPoints "<<out.matches_.size()<<"\tinlierRatio "<<(out.outKP_.size()/((float)out.matches_.size()))<<std::endl;
+	cv::namedWindow("InOut",cv::WINDOW_NORMAL);
+	cv::imshow("InOut",combined);
+	cv::waitKey(0);
+	cv::destroyWindow("InOut");
+}
+
 
 
 void StereoRectifiedFeedback::drawInliers(cv::Mat& inputOutput, StereoFrame& out, cv::Scalar col)

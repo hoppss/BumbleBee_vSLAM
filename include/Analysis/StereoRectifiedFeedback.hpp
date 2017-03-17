@@ -27,6 +27,7 @@ class StereoRectifiedFeedback
 		void drawOutliers(cv::Mat &inputOutput,StereoFrame &out,cv::Scalar col);
 		void drawOutliers(cv::Mat &inputOutput,StereoFrame &out,cv::Scalar col,cv::Scalar col2);
 		void showInlierOutlier(cv::Mat lIn,cv::Mat rIn,StereoFrame out);
+		void showInlier(cv::Mat lIn,cv::Mat rIn, StereoFrame out);
 		void drawEpiLines(cv::Mat &inputOutput,int total);
 
 };

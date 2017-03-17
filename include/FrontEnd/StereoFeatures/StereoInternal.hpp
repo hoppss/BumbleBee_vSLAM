@@ -52,6 +52,7 @@ class StereoInternal
 			BRUTE=1<<1,
 			GRIDDED=1<<2,
 			ADAPTIVE=1<<3
+			//TODO search only along rows for matching descriptors
 		};
 		//image processing settings
 		std::shared_ptr<DetSettings> default_detector_;
@@ -60,6 +61,7 @@ class StereoInternal
 		float epiThresh_;//distance in pixels a point is considered an outlier from the epipolar line
 		int maxInitialPoints_;
 		int n_rows,n_cols;
+		int min_thresh_,max_thresh_;
 		//stereo camera settings
 		MatchMethod internalMatch_;
 		RobustnessCriteria internalRobustness_;
