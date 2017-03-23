@@ -215,6 +215,13 @@ void StereoRectifiedFeedback::drawEpiLines(cv::Mat& inputOutput, int total)
 	}
 }
 
+void StereoRectifiedFeedback::printMatchScores(StereoFrame& out)
+{
+	for(int index=0;index<out.outKP_.size();index++)
+	{
+		std::cout<<out.outKP_.at(index).matchScore<<std::endl;
+	}
+}
 
 
 

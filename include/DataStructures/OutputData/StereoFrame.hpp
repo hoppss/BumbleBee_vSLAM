@@ -3,6 +3,7 @@
 
 #include "DataStructures/OutputData/StereoFrameStats.hpp"
 #include "DataStructures/OutputData/StereoKP.hpp"
+#include "DataStructures/Transforms/Isometry.hpp"
 
 namespace stereo{
 
@@ -15,7 +16,9 @@ class StereoFrame
 		std::vector<cv::DMatch> matches_;
 		StereoFrameStats statistics_;
 		std::vector<StereoKP> outKP_;
+		
 		//TODO Timings
+		
 };
 }
 

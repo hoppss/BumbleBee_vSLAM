@@ -9,7 +9,7 @@ set(REL_CAMERA_INFO_SRC "CameraInfo/Single.cpp;CameraInfo/Stereo.cpp;CameraInfo/
 
 set(OUTPUT_DATA_SRC "StereoFrame.cpp;StereoFrameStats.cpp;StereoKP.cpp")
 set(OUTPUT_DATA_HEADERS "OutputData.hpp;StereoFrame.hpp;StereoFrameStats.hpp;StereoKP.hpp")
-set(REL_OUTPUT_DATA_SRC "OutputData/StereoFrame.cpp;OutputData/StereoFrameStats.cpp;OutputData/StereoKP.cpp")
+set(REL_OUTPUT_DATA_SRC "OutputData/StereoFrame.cpp;OutputData/StereoFrameStats.cpp;OutputData/StereoKP.cpp;OutputData/SalientFeature.cpp")
 
 
 set(RELDATA_SRCS "${REL_TRANSFORMS_SRC};${REL_CAMERA_INFO_SRC};${REL_OUTPUT_DATA_SRC}")

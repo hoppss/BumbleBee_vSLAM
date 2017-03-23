@@ -9,6 +9,15 @@ target_link_libraries(coarseDetect
 	Analysis
 )
 
+add_executable(seq
+	sequence.cpp
+	)
+	
+target_link_libraries(seq 
+	FrontEnd
+	Analysis
+	)
+
 
 ##BRIEF descriptor output executables
 

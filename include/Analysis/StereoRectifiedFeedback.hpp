@@ -29,7 +29,7 @@ class StereoRectifiedFeedback
 		void showInlierOutlier(cv::Mat lIn,cv::Mat rIn,StereoFrame out);
 		void showInlier(cv::Mat lIn,cv::Mat rIn, StereoFrame out);
 		void drawEpiLines(cv::Mat &inputOutput,int total);
-
+		void printMatchScores(StereoFrame &out);
 };
 	
 	
