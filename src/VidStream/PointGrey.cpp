@@ -23,6 +23,8 @@ PointGrey::PointGrey()
 		vbal_=20;
 		expose_=800;
 		
+
+		
 }
 
 PointGrey::~PointGrey()
@@ -230,110 +232,6 @@ bool PointGrey::updateSettings()
 		std::cerr<<"Basic Settings failed to configure\n";
 		return false;
 	}
-	
-	
-	
-	
-	
-	
-	
-//	dc1394error_t e_brightmode,e_exposemode,
-/*
-	
-	//set exposure settings
-
-	
-	//set shutter settings
-	if(autoShutter_)
-	{
-		e_shutter=dc1394_feature_set_mode(camera, DC1394_FEATURE_SHUTTER,DC1394_FEATURE_MODE_AUTO);
-	}
-	else
-	{
-		//set mode
-		e_shutter=dc1394_feature_set_mode(camera,  DC1394_FEATURE_SHUTTER,DC1394_FEATURE_MODE_MANUAL);
-		if((e_shutter==DC1394_SUCCESS)&&(ans))
-		{
-			//set value
-			e_shutter=dc1394_feature_set_absolute_value(camera,  DC1394_FEATURE_SHUTTER,shutter_);
-			if(e_shutter!=DC1394_SUCCESS)
-			{
-				ans=false;
-			}
-
-		}
-	}
-	
-	//set exposure settings
-
-
-	e_brightness=dc1394_feature_set_mode(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_FEATURE_MODE_MANUAL);
-	if((e_brightness==DC1394_SUCCESS)&&(ans))
-		{
-			//set value
-			if((brightness_<=brightMAX)&&(brightness_>=brightMIN))
-			{
-				e_gain=dc1394_feature_set_value(camera, DC1394_FEATURE_BRIGHTNESS,brightness_);
-			}
-			else
-			{
-				ans=false;
-			}
-		}
-		
-		if(whiteBalance_)
-		{
-			e_white_balance=dc1394_feature_set_mode(camera,DC1394_FEATURE_WHITE_BALANCE,DC1394_FEATURE_MODE_MANUAL);
-
-			
-			
-		}
-		else
-		{
-			//e_white_balance=dc1394_feature_set_mode(camera,DC1394_FEATURE_WHITE_BALANCE,DC1394_FEATURE_MODE);
-		}
-
-	
-	
-	
-	*/
-
-/*
-	speed=dc1394_video_set_iso_speed(camera, set.iso_speed);
-	mode=dc1394_video_set_mode(camera,set.video_mode);
-	framerate=dc1394_video_set_framerate(camera,set.frame_rate);
-	capture_setup=dc1394_capture_setup(camera,set.n_buffer,DC1394_CAPTURE_FLAGS_DEFAULT);
-	
-	
-	//check for errors
-	if((speed!=DC1394_SUCCESS)&&(ans==true))
-	{
-		ans=false;
-		std::cout<<"FireWire setup error -- "<<dc1394_error_get_string(speed)<<std::endl;
-	}
-		if((mode!=DC1394_SUCCESS)&&(ans==true))
-	{
-		ans=false;
-		std::cout<<"FireWire setup error -- "<<dc1394_error_get_string(mode)<<std::endl;
-	}
-		if((framerate!=DC1394_SUCCESS)&&(ans==true))
-	{
-		ans=false;
-		std::cout<<"FireWire setup error -- "<<dc1394_error_get_string(framerate)<<std::endl;
-	}
-		if((capture_setup!=DC1394_SUCCESS)&&(ans==true))
-	{
-		ans=false;
-		std::cout<<"FireWire setup error -- "<<dc1394_error_get_string(capture_setup)<<std::endl;
-	}
-	
-	
-	
-	if(ans)
-	{
-		std::cout<<"FireWire setup Completed"<<std::endl;
-	}*/
-
 }
 
 
@@ -380,16 +278,12 @@ void PointGrey::closeCamera()
 
 void PointGrey::convertToMat(dc1394video_frame_t* src)
 {
-	dc1394video_frame_t stereo_frame;
 	memcpy(&stereo_frame,src,sizeof(dc1394video_frame_t)); //copy MetaData
 	stereo_frame.allocated_image_bytes=0;
 	stereo_frame.image=NULL;
 
 	dc1394_deinterlace_stereo_frames(src,&stereo_frame,DC1394_STEREO_METHOD_INTERLACED);
 	//convert images to individual ones, left image on bottom, right image on the top
-
-	short int * d_pt;
- 	short int * s_pt;
 
 	d_pt=(short int*)&bayerImage.data[0];
 	s_pt=(short int*)&stereo_frame.image[0];
@@ -469,19 +363,18 @@ bool PointGrey::getLatestFrame(cv::Mat& l, cv::Mat& r)
 bool PointGrey::getLatestFrame(cv::Mat& l, cv::Mat& r,uint64_t &stamp)
 {
 	bool Success=true;
-	dc1394video_frame_t * tempFrame;
 	dc1394error_t deque,enque;
 
 	
-	deque=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&tempFrame);
+	deque=dc1394_capture_dequeue(camera,DC1394_CAPTURE_POLICY_WAIT,&latestFrame);
 	
 	if(deque==DC1394_SUCCESS)
 		{
 					//check for frame corruption
-					if(!dc1394_capture_is_frame_corrupt(camera,tempFrame))
+					if(!dc1394_capture_is_frame_corrupt(camera,latestFrame))
 					{
-						stamp=tempFrame->timestamp;
-							convertToMat(tempFrame);
+							stamp=latestFrame->timestamp;
+							convertToMat(latestFrame);
 							l=left_img;
 							r=right_img;
 					}
@@ -491,7 +384,7 @@ bool PointGrey::getLatestFrame(cv::Mat& l, cv::Mat& r,uint64_t &stamp)
 						std::cerr<<"Frame corrupt -error- \n";
 					}
 		}
-	enque=dc1394_capture_enqueue(camera,tempFrame);
+	enque=dc1394_capture_enqueue(camera,latestFrame);
 	if(enque!=DC1394_SUCCESS)
 	{
 		std::cerr<<"Enque -error- "<<dc1394_error_get_string(enque)<<std::endl;	

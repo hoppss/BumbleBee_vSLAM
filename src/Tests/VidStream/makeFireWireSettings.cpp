@@ -25,7 +25,6 @@ int main(int argc, char *argv[])
 		}
 		bumbleBee.closeStream();
 	}
-
 	cv::destroyAllWindows();
 	
 	

@@ -28,6 +28,10 @@ class PointGrey
 		cv::Mat outputImage=cv::Mat(1536,1024,CV_8UC1);
 		cv::Mat left_img=outputImage(cv::Rect(0,768,1024,768));
 		cv::Mat right_img=outputImage(cv::Rect(0,0,1024,768));
+		dc1394video_frame_t * latestFrame;
+		dc1394video_frame_t stereo_frame;
+		short int * d_pt;
+		short int * s_pt;
 		dc1394_t * init_1394;//is the camera properly set up
 		dc1394camera_t *camera;//reference to camera
 		dc1394speed_t iso_speed; /*always the same i.e. they arent going to be changed*/
