@@ -44,7 +44,9 @@ class StereoInternal
 			CELL_DESCRIPTION_TIME=1<<3,
 			OVERALL_TIME=1<<4,
 			ADMIN_TIME=1<<5,//compute how much time is used switching into and out of functions
-			KEEP_OUTLIER=1<<6 //save the features that were removed as outliers
+			KEEP_OUTLIER=1<<6, //save the features that were removed as outliers
+			KEEP_PROGRESS=1<<7,
+			KEEP_RECTIFIED=1<<8,
 		};
 		enum DetectionOptions
 		{

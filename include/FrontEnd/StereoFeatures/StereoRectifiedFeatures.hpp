@@ -13,17 +13,19 @@ class StereoRectifiedFeatures : public StereoRectifiedInternal
 
 {
 	private:
-		StereoKP buildStereoKP(StereoFrame &output,int Matchindex);
+	//	StereoKP buildStereoKP(StereoFrame &output,int Matchindex);
 	public:
 		StereoRectifiedFeatures();
 		bool Initialize_(std::string directoryXML);
 		bool checkSettings();
 		void getFrame(StereoFrame &outputFrame,cv::Mat LeftIn,cv::Mat RightIn);
+		void getFrame(StereoFrame &outputFrame,cv::Mat LeftIn,cv::Mat RightIn,StereoFrameStats &debug);
 		void SimpleFrame(StereoFrame &outputFrame,cv::Mat LeftIn,cv::Mat RightIn);
 		void pruneTopScores(std::vector< cv::KeyPoint >& output, int maxFeatures);
 		void pruneTopScores(std::vector< cv::KeyPoint >& output,std::vector<cv::KeyPoint> &rejected, int maxFeatures);
 		void getMatches(StereoFrame &outputFrame);
 		void epiPoleReject(StereoFrame &outputFrame);
+		void epiPoleReject(StereoFrame &outputFrame,StereoFrameStats &debug);
 		float epiLineError(cv::Point2f left,cv::Point2f right);
 };
 	

@@ -13,15 +13,17 @@ class StereoRectifiedFeedback
 {
 	private:
 		StereoRect *feed_cal;
-		void drawStereoKP(StereoKP in,cv::Mat &inputOutput,cv::Scalar col);
-		void drawStereoKP(StereoKP in,cv::Mat &inputOutput,cv::Scalar col,cv::Scalar col2);
+//		void drawStereoKP(StereoKP in,cv::Mat &inputOutput,cv::Scalar col);
+//		void drawStereoKP(StereoKP in,cv::Mat &inputOutput,cv::Scalar col,cv::Scalar col2);
 	public:
 		StereoRectifiedFeedback();
 		StereoRectifiedFeedback(StereoRect *ptr);
 		void RectifyImg(cv::Mat limg,cv::Mat rimg,cv::Mat &out);
 		void RectifyImg(cv::Mat in,cv::Mat &out,bool left);
 		void sideBySide(cv::Mat left,cv::Mat right,cv::Mat &out);//must be the same size and type
-		void displayRectifiedMatches(cv::Mat lrect,cv::Mat rrect,StereoFrame out);
+		void displayRectifiedMatches(cv::Mat lrect,cv::Mat rrect,StereoFrame &out);
+		void displayRectifiedMatches(StereoFrameStats &debug,StereoFrame &out);
+		
 		void drawInliers(cv::Mat &inputOutput,StereoFrame &out,cv::Scalar col);
 		void drawInliers(cv::Mat &inputOutput,StereoFrame &out,cv::Scalar col,cv::Scalar col2);
 		void drawOutliers(cv::Mat &inputOutput,StereoFrame &out,cv::Scalar col);

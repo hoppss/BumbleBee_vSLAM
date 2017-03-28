@@ -8,7 +8,7 @@ set(STEREO_FEATURES_HEADERS "StereoInternal.hpp;StereoRectifiedInternal.hpp;Ster
 set(REL_STEREO_FEATURES_SRC "StereoFeatures/StereoInternal.cpp;StereoFeatures/StereoRectifiedInternal.cpp;StereoFeatures/StereoRectifiedFeatures.cpp")
 
 set(WINDOW_SRC "WindowInternal.cpp;SlidingWindow.cpp")
-set(WINDOW_HEADERS "WindowInternal.hpp;SlidingWindow.hpp")
+set(WINDOW_HEADERS "WindowInternal.hpp;SlidingWindow.hpp")#TODO
 set(REL_WINDOW_SRC "Window/WindowInternal.cpp;Window/SlidingWindow.cpp")
 
 add_library(FrontEnd

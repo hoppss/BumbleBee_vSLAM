@@ -14,6 +14,9 @@ StereoRectifiedFeedback::StereoRectifiedFeedback(StereoRect* ptr)
 	feed_cal=ptr;//NOTE there is no deep copying here, assumes the object stereoRect still exists in memory
 }
 
+
+
+
 void StereoRectifiedFeedback::RectifyImg(cv::Mat limg, cv::Mat rimg, cv::Mat& out)
 {
 	cv::Mat lRectified,rRectified;
@@ -39,14 +42,11 @@ void StereoRectifiedFeedback::sideBySide(cv::Mat left, cv::Mat right, cv::Mat& o
 }
 
 
-void StereoRectifiedFeedback::displayRectifiedMatches(cv::Mat lrect, cv::Mat rrect, StereoFrame out)
+void StereoRectifiedFeedback::displayRectifiedMatches(cv::Mat lrect, cv::Mat rrect, StereoFrame &out)
 {
 	std::vector<cv::KeyPoint> corrected_left,corrected_right;
-	cv::namedWindow("rectifiedMatches",cv::WINDOW_NORMAL);
-	cv::namedWindow("colour",cv::WINDOW_NORMAL);
-	cv::Mat outimage,colour;
-	sideBySide(lrect,rrect,outimage);
-	cv::cvtColor(outimage,colour,cv::COLOR_GRAY2RGB);
+	
+	cv::Mat outimage;
 	for(int index=0;index<out.leftKP_.size();index++)
 	{
 		cv::KeyPoint temp=out.leftKP_.at(index);
@@ -64,6 +64,36 @@ void StereoRectifiedFeedback::displayRectifiedMatches(cv::Mat lrect, cv::Mat rre
 	}
 	
 	cv::drawMatches(lrect,corrected_left,rrect,corrected_right,out.matches_,outimage);
+	cv::namedWindow("rectifiedMatches",cv::WINDOW_NORMAL);
+	cv::imshow("rectifiedMatches",outimage);
+	cv::waitKey(0);
+	cv::destroyWindow("rectifiedMatches");
+	
+}
+
+void StereoRectifiedFeedback::displayRectifiedMatches(StereoFrameStats& debug, StereoFrame& out)
+{
+std::vector<cv::KeyPoint> corrected_left,corrected_right;	
+	cv::Mat outimage;
+	sideBySide(debug.leftRect_,debug.rightRect_,outimage);
+	cv::cvtColor(outimage,outimage,cv::COLOR_GRAY2RGB);
+	for(int index=0;index<out.leftKP_.size();index++)
+	{
+		cv::KeyPoint temp=out.leftKP_.at(index);
+		temp.pt.x+=feed_cal->l_ROI_.x;
+		temp.pt.y+=feed_cal->l_ROI_.y;
+		corrected_left.push_back(temp);
+	}
+	
+		for(int index=0;index<out.rightKP_.size();index++)
+	{
+		cv::KeyPoint temp=out.rightKP_.at(index);
+		temp.pt.x+=feed_cal->r_ROI_.x;
+		temp.pt.y+=feed_cal->r_ROI_.y;
+		corrected_right.push_back(temp);
+	}
+	
+	cv::drawMatches(debug.leftRect_,corrected_left,debug.rightRect_,corrected_right,out.matches_,outimage);
 
 	cv::imshow("rectifiedMatches",outimage);
 	cv::waitKey(0);
@@ -72,6 +102,7 @@ void StereoRectifiedFeedback::displayRectifiedMatches(cv::Mat lrect, cv::Mat rre
 	
 }
 
+/*
 void StereoRectifiedFeedback::RectifyImg(cv::Mat in, cv::Mat& out, bool left)
 {
 	if(left)
@@ -87,16 +118,16 @@ void StereoRectifiedFeedback::RectifyImg(cv::Mat in, cv::Mat& out, bool left)
 }
 
 void StereoRectifiedFeedback::drawStereoKP(StereoKP in, cv::Mat &inputOutput, cv::Scalar col)
-{
+{*/
 	/* draws a match onto an existing sideBySide image*/
-	cv::Point2f lcorrect,rcorrect;
+// 	cv::Point2f lcorrect,rcorrect;
 	
-	lcorrect=in.left.pt;
-	lcorrect.x+=feed_cal->l_ROI_.x;
-	lcorrect.y+=feed_cal->l_ROI_.y;
+// 	lcorrect=in.left.pt;
+// 	lcorrect.x+=feed_cal->l_ROI_.x;
+// 	lcorrect.y+=feed_cal->l_ROI_.y;
 	
 	/* also includes the shift to the right image when viewed side by side*/
-	rcorrect=in.right.pt;
+/*	rcorrect=in.right.pt;
 	rcorrect.x+=feed_cal->r_ROI_.x+(int)inputOutput.size().width/2.0;
 	rcorrect.y+=feed_cal->r_ROI_.y;
 	
@@ -106,36 +137,36 @@ void StereoRectifiedFeedback::drawStereoKP(StereoKP in, cv::Mat &inputOutput, cv
 }
 
 void StereoRectifiedFeedback::drawStereoKP(StereoKP in, cv::Mat& inputOutput, cv::Scalar col, cv::Scalar col2)
-{
+{*/
 		/* draws a match onto an existing sideBySide image*/
-	cv::Point2f lcorrect,rcorrect;
+// 	cv::Point2f lcorrect,rcorrect;
 	
-	lcorrect=in.left.pt;
-	lcorrect.x+=feed_cal->l_ROI_.x;
-	lcorrect.y+=feed_cal->l_ROI_.y;
+// 	lcorrect=in.left.pt;
+// 	lcorrect.x+=feed_cal->l_ROI_.x;
+// 	lcorrect.y+=feed_cal->l_ROI_.y;
 	
 	/* also includes the shift to the right image when viewed side by side*/
-	rcorrect=in.right.pt;
-	rcorrect.x+=feed_cal->r_ROI_.x+(int)inputOutput.size().width/2.0;
-	rcorrect.y+=feed_cal->r_ROI_.y;
+// 	rcorrect=in.right.pt;
+// 	rcorrect.x+=feed_cal->r_ROI_.x+(int)inputOutput.size().width/2.0;
+// 	rcorrect.y+=feed_cal->r_ROI_.y;
 	
-	cv::circle(inputOutput,lcorrect,3,col);
-	cv::circle(inputOutput,rcorrect,3,col);
-	cv::line(inputOutput,lcorrect,rcorrect,col,1);
+// 	cv::circle(inputOutput,lcorrect,3,col);
+// 	cv::circle(inputOutput,rcorrect,3,col);
+// 	cv::line(inputOutput,lcorrect,rcorrect,col,1);
 	/* also draws the distance to the epi polar line for each Left point*/
-	cv::Point2f epiPoint;
-	epiPoint=rcorrect;
-	epiPoint.x=lcorrect.x;
+// 	cv::Point2f epiPoint;
+// 	epiPoint=rcorrect;
+// 	epiPoint.x=lcorrect.x;
 	
-	cv::line(inputOutput,lcorrect,epiPoint,col2,2);
+// 	cv::line(inputOutput,lcorrect,epiPoint,col2,2);
 	
 //	epiPoint=lcorrect;
 //	epiPoint.x=rcorrect.x;
 	
 //	cv::line(inputOutput,rcorrect,epiPoint,col2,2);
 	
-}
-
+// }
+/*
 
 void StereoRectifiedFeedback::showInlierOutlier(cv::Mat lIn,cv::Mat rIn,StereoFrame out)
 {
@@ -223,6 +254,6 @@ void StereoRectifiedFeedback::printMatchScores(StereoFrame& out)
 	}
 }
 
-
+*/
 
 }

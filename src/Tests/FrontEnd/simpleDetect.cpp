@@ -10,8 +10,8 @@ int main(int argc, char * argv[])
 		/*create internal matching + det+descr settings
 	 */
 	std::shared_ptr<DetSettings> brisk_det(new BRISKdet());
-	brisk_det->setAdjustSettings(0.3,1);
-	brisk_det->setInternalSettings(1,3,1.0);
+	brisk_det->setAdjustSettings(0.1,1);
+	brisk_det->setInternalSettings(12,3,1.0);
 	
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
 	/*Configure front end
@@ -20,13 +20,14 @@ int main(int argc, char * argv[])
 	StereoRectifiedFeatures bumbleBee;
 	bumbleBee.default_descriptor_=brief_descr;
 	bumbleBee.default_detector_=brisk_det;
-	bumbleBee.maxInitialPoints_=1300;
+	bumbleBee.maxInitialPoints_=800;
 	
 	bumbleBee.internalDescription_=StereoInternal::BRIEF_DESCR;
 	
 	bumbleBee.internalDetectionOptions_=StereoInternal::DetectionOptions::SIMPLE;
 	
-	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::CROSS_CHECK);
+	bumbleBee.internalRobustness_=static_cast<StereoInternal::RobustnessCriteria>(StereoInternal::RobustnessCriteria::POST_REJECTION|
+																																								StereoInternal::RobustnessCriteria::PRUNE_INITIAL_SCORE);
 	
 	bumbleBee.internalMatch_=StereoInternal::MatchMethod::BRUTE_FORCE;
 	
@@ -37,22 +38,25 @@ int main(int argc, char * argv[])
 
 	
 	/** get test images */
-	cv::Mat testImage,rimage;
-	testImage=cv::imread("/home/ubuntu/ll.ppm",cv::IMREAD_GRAYSCALE);
-	rimage=cv::imread("/home/ubuntu/rr.ppm",cv::IMREAD_GRAYSCALE);
+	cv::Mat limage,rimage;
+	limage=cv::imread("/home/ubuntu/l1.ppm",cv::IMREAD_GRAYSCALE);
+	rimage=cv::imread("/home/ubuntu/r1.ppm",cv::IMREAD_GRAYSCALE);
 
 	bool stop=false;
-	while(!stop)
-	{
+//	while(!stop)
+//	{
 		StereoFrame myFrame;
-		bumbleBee.getFrame(myFrame,testImage,rimage);
+		StereoFrameStats frameStat;
+		frameStat.setAllOn();
+		bumbleBee.getFrame(myFrame,limage,rimage,frameStat);
 		stop=!bumbleBee.default_detector_->increment();
 
 		
 		
 		StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
-		feed.showInlier(testImage,rimage,myFrame);
-		cv::destroyAllWindows();
-	}
+		feed.displayRectifiedMatches(frameStat,myFrame);
+		//feed.showInlierOutlier(limage,rimage,myFrame);
+	//	cv::destroyAllWindows();
+	//}
 	return 0;
 }

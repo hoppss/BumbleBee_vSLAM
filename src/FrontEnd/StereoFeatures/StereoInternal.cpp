@@ -71,7 +71,7 @@ bool StereoInternal::validRobustnessCriteria()
 
 bool StereoInternal::validStats()
 {
-	if((internalStatistics_>(DETECTION_TIME|CELL_DETECTION_TIME|DESCRIPTION_TIME|CELL_DESCRIPTION_TIME|OVERALL_TIME|ADMIN_TIME|KEEP_OUTLIER))||(internalStatistics_<0))
+	if((internalStatistics_>(DETECTION_TIME|KEEP_RECTIFIED|CELL_DETECTION_TIME|DESCRIPTION_TIME|CELL_DESCRIPTION_TIME|OVERALL_TIME|ADMIN_TIME|KEEP_OUTLIER|KEEP_PROGRESS))||(internalStatistics_<0))
 	{
 		return false;
 	}

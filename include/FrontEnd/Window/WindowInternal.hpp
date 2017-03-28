@@ -21,6 +21,7 @@ class WindowInternal
 			KNN_MATCH=1<<3,
 			DATABASE=1<<4,
 			LEFT_ONLY=1<<5,
+			EARLY_THRESH=1<<6,
 		};
 		enum WindowDescription
 		{

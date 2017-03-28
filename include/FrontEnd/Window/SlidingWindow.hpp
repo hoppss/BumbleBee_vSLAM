@@ -9,15 +9,21 @@
 namespace stereo
 {
 
-typedef unsigned int _Key_; //the type each unique map key is 
+/*typedef unsigned int _Key_; //the type each unique map key is 
 typedef unsigned int _FrameID_;
 typedef std::map<_Key_,SalientFeature*> mapFeat;
 typedef std::deque<std::vector<_Key_> > mapFrame;
-typedef std::deque<Isometry> odometer;
+typedef std::deque<Isometry> odometer;*/
 	
 class SlidingWindow : public WindowInternal
 {
 	private:
+	/*	enum KP_State
+		{
+			NEW_KP,
+			MATCH,
+			REJECTED,
+		};
 		void bootstrap(StereoFrame &first);
 		_FrameID_ current_frame_;
 		_Key_ overall_feat_;
@@ -35,10 +41,10 @@ class SlidingWindow : public WindowInternal
 		std::vector<float>::iterator loweRejection(std::vector<float> &allScores);
 		void findLowestTwo(std::vector< float >& allScores,
 											 std::vector< float >::iterator &best,
-											 std::vector<float>::iterator &second);
+											 std::vector<float>::iterator &second);*/
 	public:
 		SlidingWindow();
-		void pushFrame(StereoFrame &latest);
+	//	void pushFrame(StereoFrame &latest);
 		//motion estimate between two frames
 		//
 		//optimization

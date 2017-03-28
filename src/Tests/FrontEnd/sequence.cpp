@@ -49,15 +49,15 @@ int main(int argc, char * argv[])
 	
 	/** get test images */
 	cv::Mat limage,rimage;
-	limage=cv::imread("/home/ubuntu/a1.ppm",cv::IMREAD_GRAYSCALE);
-	rimage=cv::imread("/home/ubuntu/a2.ppm",cv::IMREAD_GRAYSCALE);
+	limage=cv::imread("/home/ubuntu/l1.ppm",cv::IMREAD_GRAYSCALE);
+	rimage=cv::imread("/home/ubuntu/r1.ppm",cv::IMREAD_GRAYSCALE);
 	
 	cv::Mat limage2,rimage2;
-	limage2=cv::imread("/home/ubuntu/r1.ppm",cv::IMREAD_GRAYSCALE);
+	limage2=cv::imread("/home/ubuntu/l2.ppm",cv::IMREAD_GRAYSCALE);
 	rimage2=cv::imread("/home/ubuntu/r2.ppm",cv::IMREAD_GRAYSCALE);
 	
 	
-	StereoFrame myFrame,f2;
+/*	StereoFrame myFrame,f2;
 	bumbleBee.getFrame(myFrame,limage,rimage);
 	
 
@@ -72,7 +72,7 @@ int main(int argc, char * argv[])
 	feed.showInlier(limage,rimage,myFrame);
 	feed.printMatchScores(f2);
 	feed.showInlier(limage2,rimage2,f2);
-	cv::destroyAllWindows();
+	cv::destroyAllWindows();*/
 	
 	
 	return 0;
