@@ -23,10 +23,13 @@ class StereoFrameStats
 			KEEP_RECTIFIED=1<<8,
 			KEEP_ROI_IMG=1<<9,
 			KEEP_PRE_REJECTED=1<<10,
+			KEEP_INPUT=1<<11,
 		};	
 	 StereoFrameStats();
+	 cv::Mat leftOrig_,rightOrig_;
 	 cv::Mat leftRect_,rightRect_;
 	 cv::Mat leftROI_img_,rightROI_img_;
+	 std::vector<cv::KeyPoint> initial_lkp_,initial_rkp_;
 	 std::vector<cv::KeyPoint> l_preEmptiveRejected_;
 	 std::vector<cv::KeyPoint> r_preEmptiveRejected_;	 
 	 std::vector<cv::KeyPoint> epiOut_l,epiOut_r;

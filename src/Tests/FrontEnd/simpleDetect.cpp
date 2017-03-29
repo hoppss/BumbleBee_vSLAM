@@ -54,9 +54,38 @@ int main(int argc, char * argv[])
 		
 		
 		StereoRectifiedFeedback feed(bumbleBee.ptr_cal_);
-		feed.displayRectifiedMatches(frameStat,myFrame);
-		//feed.showInlierOutlier(limage,rimage,myFrame);
-	//	cv::destroyAllWindows();
-	//}
+		
+		cv::Mat origl,origr,rer,inlier,out;
+		cv::Mat rel,matc;
+		
+		feed.getOriginalDetected(frameStat,origl,origr);
+		feed.getRectDetected(myFrame,frameStat,rel,rer);
+		feed.getRectifiedMatches(frameStat,myFrame,matc);
+		
+		feed.getSideSideRect(limage,rimage,inlier);
+		feed.getSideSideRect(limage,rimage,out);
+		cv::cvtColor(inlier,inlier,cv::COLOR_GRAY2RGB);
+		cv::cvtColor(out,out,cv::COLOR_GRAY2RGB);
+		
+		
+		
+		feed.drawInlierMatches(inlier,myFrame,cv::Scalar(255,0,0));
+		feed.drawEpiRejections(out,frameStat,cv::Scalar(0,0,255));
+		
+		cv::namedWindow("left",cv::WINDOW_NORMAL);
+		cv::namedWindow("rectl",cv::WINDOW_NORMAL);
+		cv::namedWindow("match",cv::WINDOW_NORMAL);
+		cv::namedWindow("inlier",cv::WINDOW_NORMAL);
+		cv::namedWindow("outlier",cv::WINDOW_NORMAL);
+		
+		
+		cv::imshow("left",origl);
+		cv::imshow("inlier",inlier);
+		cv::imshow("rectl",rel);
+		cv::imshow("match",matc);
+		cv::imshow("outlier",out);
+		cv::waitKey(0);
+		cv::destroyAllWindows();
+
 	return 0;
 }

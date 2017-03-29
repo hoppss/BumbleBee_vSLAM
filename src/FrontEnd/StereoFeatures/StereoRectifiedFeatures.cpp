@@ -78,6 +78,12 @@ void StereoRectifiedFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn,
 
 void StereoRectifiedFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn, cv::Mat RightIn, StereoFrameStats& debug)
 {
+	if(debug.settings_&StereoFrameStats::KEEP_INPUT)
+	{
+		LeftIn.copyTo(debug.leftOrig_);
+		RightIn.copyTo(debug.rightOrig_);
+	}
+	
 	cv::Mat lRectified,rRectified;
 	lRectified=cv::Mat(ptr_cal_->L_fMapx_.size(),LeftIn.type());
 	rRectified=cv::Mat(ptr_cal_->R_fMapx_.size(),RightIn.type());
@@ -95,23 +101,30 @@ void StereoRectifiedFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn,
 		lRectified.copyTo(debug.leftRect_);
 		rRectified.copyTo(debug.rightRect_);
 	}
-	if(debug.settings_&StereoFrameStats::KEEP_ROI_IMG)
-	{
-		limg.copyTo(debug.leftROI_img_);
-		rimg.copyTo(debug.rightROI_img_);
-	}
 	//dertect features in each region of interest according to the detecion method and settings
 	//in this case, it uses default settings throughout the run (no adaptive no modifications from initial
 	//setup)
 	default_detector_->getFeatures(limg,outputFrame.leftKP_);
 	default_detector_->getFeatures(rimg,outputFrame.rightKP_);
 	
-	
+	if(debug.settings_&StereoFrameStats::KEEP_ROI_IMG)
+	{
+		limg.copyTo(debug.leftROI_img_);
+		rimg.copyTo(debug.rightROI_img_);
+		debug.initial_lkp_=outputFrame.leftKP_;
+		debug.initial_rkp_=outputFrame.rightKP_;
+	}
 	
 	//change to rectified coora
 	for(int index=0;index<outputFrame.leftKP_.size();index++)
 	{
-		/*offset into*/
+		outputFrame.leftKP_.at(index).pt.x+=ptr_cal_->l_ROI_.x;
+		outputFrame.leftKP_.at(index).pt.y+=ptr_cal_->l_ROI_.y;
+	}
+	for(int index=0;index<outputFrame.rightKP_.size();index++)
+	{
+		outputFrame.rightKP_.at(index).pt.x+=ptr_cal_->r_ROI_.x;
+		outputFrame.rightKP_.at(index).pt.y+=ptr_cal_->r_ROI_.y;
 	}
 	
 
@@ -139,8 +152,8 @@ void StereoRectifiedFeatures::getFrame(StereoFrame& outputFrame, cv::Mat LeftIn,
 		std::cout<<"still to implement"<<std::endl;
 	}
 	
-	default_descriptor_->compute(limg,outputFrame.leftKP_,outputFrame.leftDescrip_);
-	default_descriptor_->compute(rimg,outputFrame.rightKP_,outputFrame.rightDescrip_);
+	default_descriptor_->compute(lRectified,outputFrame.leftKP_,outputFrame.leftDescrip_);
+	default_descriptor_->compute(rRectified,outputFrame.rightKP_,outputFrame.rightDescrip_);
 	
 	getMatches(outputFrame);
 	
@@ -254,7 +267,7 @@ void StereoRectifiedFeatures::epiPoleReject(StereoFrame& outputFrame, StereoFram
 			if(debug.settings_&StereoFrameStats::KEEP_OUTLIER)
 			{
 				debug.epiOut_l.push_back(outputFrame.leftKP_.at(outputFrame.matches_.at(index).queryIdx));
-				debug.epiOut_l.push_back(outputFrame.rightKP_.at(outputFrame.matches_.at(index).trainIdx));
+				debug.epiOut_r.push_back(outputFrame.rightKP_.at(outputFrame.matches_.at(index).trainIdx));
 			}
 		}
 		else
@@ -284,15 +297,8 @@ StereoKP StereoRectifiedFeatures::buildStereoKP(StereoFrame& output, int Matchin
 
 float StereoRectifiedFeatures::epiLineError(cv::Point2f left, cv::Point2f right)
 {
-		/*correct for region of interest,
-	 * The original rectified images are row aligned, not the region of interest 
-	 * images which have different sizes*/
-	//left.x+=ptr_cal_->l_ROI_.x;  X is irrelevant to the epi pole line calculation
-	float leftY=left.y+ptr_cal_->l_ROI_.y;
-	float rightY=right.y+ptr_cal_->r_ROI_.y;
-
 	
-	return 2*abs(leftY-rightY);//times two because we rae including both error as seen from the
+	return 2*abs(left.y-right.y);//times two because we rae including both error as seen from the
 	//left image, and the image as seen from the right image,
 	//because they are rectified images, these errors are the same
 
