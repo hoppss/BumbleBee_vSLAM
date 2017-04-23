@@ -5,9 +5,9 @@
 namespace stereo
 {
 
-WindowInternal::WindowInternal()
+WindowInternal::WindowInternal(int size_)
 {
-	w_width_=1;
+	w_width_=size_;
 }
 
 int WindowInternal::getScoreMeasure()

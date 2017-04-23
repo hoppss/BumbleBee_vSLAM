@@ -3,11 +3,34 @@
 namespace stereo
 {
 
-SlidingWindow::SlidingWindow() : WindowInternal()
+SlidingWindow::SlidingWindow(int size_) : WindowInternal(size_)
 {
 //	overall_feat_=0;
 //	current_frame_=0;
+	StereoFrame a;
+	FramePtr first;
+	//first= new StereoFrame();
+	
+	//window_.push_back(first);
 }
+
+
+
+void SlidingWindow::pushNewFrame(FramePtr &latestFrame)
+{
+	//delete the oldest
+//	std::unique_ptr< StereoFrame > latest(new StereoFrame);
+//	window_.push_back(latest);
+	
+	if(window_.size()>w_width_)
+	{
+		//delete StereoFrame
+	///	window_.pop_front();
+	}
+
+	window_.push_back(latestFrame);
+}
+
 
 	
 // void SlidingWindow::pushFrame(StereoFrame& latest)
@@ -274,7 +297,6 @@ void SlidingWindow::findLowestTwo(std::vector< float >& allScores, std::vector< 
 
 
 */
-
 
 
 

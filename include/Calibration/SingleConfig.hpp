@@ -79,6 +79,8 @@ static void read(const cv::FileNode& node, stereo::SingleConfig& x, const stereo
 	}
 }
 
+
+
 static void write(cv::FileStorage& fs, const std::string&, const stereo::SingleConfig& x)
 {
     x.write(fs);

@@ -10,8 +10,8 @@ int main(int argc, char * argv[])
 		/*create internal matching + det+descr settings
 	 */
 	std::shared_ptr<DetSettings> brisk_det(new BRISKdet());
-	brisk_det->setAdjustSettings(0.1,1);
-	brisk_det->setInternalSettings(12,3,1.0);
+	brisk_det->setAdjustSettings(0.05,1);
+	brisk_det->setInternalSettings(2,3,1.0);
 	
 	cv::Ptr<cv::DescriptorExtractor> brief_descr= cv::DescriptorExtractor::create("BRIEF");
 	/*Configure front end
@@ -43,12 +43,22 @@ int main(int argc, char * argv[])
 	rimage=cv::imread("/home/ubuntu/r1.ppm",cv::IMREAD_GRAYSCALE);
 
 	bool stop=false;
-//	while(!stop)
-//	{
+	
+			cv::namedWindow("left",cv::WINDOW_NORMAL);
+		cv::namedWindow("rectl",cv::WINDOW_NORMAL);
+		cv::namedWindow("match",cv::WINDOW_NORMAL);
+		cv::namedWindow("inlier",cv::WINDOW_NORMAL);
+		cv::namedWindow("outlier",cv::WINDOW_NORMAL);
+		
+	
+	while(!stop)
+	{
 		StereoFrame myFrame;
 		StereoFrameStats frameStat;
+		
+		std::unique_ptr<StereoFrame> ptr_(new StereoFrame);
 		frameStat.setAllOn();
-		bumbleBee.getFrame(myFrame,limage,rimage,frameStat);
+		bumbleBee.getFrame((*ptr_),limage,rimage,frameStat);
 		stop=!bumbleBee.default_detector_->increment();
 
 		
@@ -60,7 +70,7 @@ int main(int argc, char * argv[])
 		
 		feed.getOriginalDetected(frameStat,origl,origr);
 		feed.getRectDetected(myFrame,frameStat,rel,rer);
-		feed.getRectifiedMatches(frameStat,myFrame,matc);
+		feed.getRectifiedMatches(frameStat,(*ptr_),matc);
 		
 		feed.getSideSideRect(limage,rimage,inlier);
 		feed.getSideSideRect(limage,rimage,out);
@@ -69,9 +79,9 @@ int main(int argc, char * argv[])
 		
 		
 		
-		feed.drawInlierMatches(inlier,myFrame,cv::Scalar(255,0,0));
+		feed.drawInlierMatches(inlier,(*ptr_),cv::Scalar(255,0,0));
 		feed.drawEpiRejections(out,frameStat,cv::Scalar(0,0,255));
-		
+
 		cv::namedWindow("left",cv::WINDOW_NORMAL);
 		cv::namedWindow("rectl",cv::WINDOW_NORMAL);
 		cv::namedWindow("match",cv::WINDOW_NORMAL);
@@ -85,6 +95,8 @@ int main(int argc, char * argv[])
 		cv::imshow("match",matc);
 		cv::imshow("outlier",out);
 		cv::waitKey(0);
+		
+	}
 		cv::destroyAllWindows();
 
 	return 0;

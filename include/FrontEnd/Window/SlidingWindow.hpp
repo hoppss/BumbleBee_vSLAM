@@ -2,9 +2,11 @@
 #define SLIDING_WINDOW_HEADER_HPP
 
 #include "FrontEnd/Window/WindowInternal.hpp"
-#include "DataStructures/OutputData/SalientFeature.hpp"
+#include "DataStructures/OutputData/StereoFrame.hpp"
+#include <sba.h>
 #include <map>
 #include <deque>
+#include <memory>
 
 namespace stereo
 {
@@ -14,6 +16,10 @@ typedef unsigned int _FrameID_;
 typedef std::map<_Key_,SalientFeature*> mapFeat;
 typedef std::deque<std::vector<_Key_> > mapFrame;
 typedef std::deque<Isometry> odometer;*/
+
+
+typedef std::shared_ptr<StereoFrame> FramePtr;
+typedef std::deque<FramePtr> FrameQueue;
 	
 class SlidingWindow : public WindowInternal
 {
@@ -42,12 +48,11 @@ class SlidingWindow : public WindowInternal
 		void findLowestTwo(std::vector< float >& allScores,
 											 std::vector< float >::iterator &best,
 											 std::vector<float>::iterator &second);*/
+		FrameQueue window_;
 	public:
-		SlidingWindow();
-	//	void pushFrame(StereoFrame &latest);
-		//motion estimate between two frames
-		//
-		//optimization
+		SlidingWindow(int size_);
+		void pushNewFrame(FramePtr &latestFrame);
+
 };
 	
 }

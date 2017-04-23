@@ -19,6 +19,7 @@ add_library(FrontEnd
 
 target_link_libraries(FrontEnd
 	DataStructures
+	sba
 	)
 	
 

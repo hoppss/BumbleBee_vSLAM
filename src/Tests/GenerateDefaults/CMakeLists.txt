@@ -1,0 +1,4 @@
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/GenerateDefaults)
+
+add_executable(genRecordingSettings genRecordingSettings.cpp)
+target_link_libraries(genRecordingSettings VidStream)

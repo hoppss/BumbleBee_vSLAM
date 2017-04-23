@@ -38,7 +38,7 @@ class WindowInternal
 			THRESHOLD_REJECTION=1<<1,
 			LOWE_REJECTION=1<<2,
 		};
-		WindowInternal();
+		WindowInternal(int size_);
 		int w_width_;//how many frames to keep
 		float match_thresh_;
 		float lowe_ratio_;

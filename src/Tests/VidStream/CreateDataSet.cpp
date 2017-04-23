@@ -1,64 +1,93 @@
 
 #include "VidStream/PointGrey.hpp"
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/path.hpp>
 #include <curses.h>
 #include <stdlib.h> 
 
 
 #define LEFT_PREFIX "l"
 #define RIGHT_PREFIX "r"
+#define DEFAULT_DIRECTORY "/home/ubuntu/Recordings"
 
 int main(int argc, char * argv[])
 {
-	if(argc!=3)
+	//Get input variables
+	if((argc<2)||(argc>3))
 	{
-		std::cout<<"incorrect number of parameters\n";
-		std::cout<<"arg 1 =  overall_directory\n";
-		std::cout<<"arg 2 = directory Prefix\n";
+		std::cout<<"incorrect number of parameters--expects either of two modes\n";
+		std::cout<<"mode 1\n";
+		std::cout<<"arg 1 = sub directory\n";
+		std::cout<<"Will be stored in "<<DEFAULT_DIRECTORY<<" + arg1 "<<std::endl;
+		std::cout<<"mode 2\n";
+		std::cout<<"arg 1 = overall directory\n";
+		std::cout<<"arg 2 = sub directory\n";
+		std::cout<<"Will be stored in arg1 + arg2 "<<std::endl;
 		return 1;
 	}
-	
+	std::string overall_directory,file_prefix,left_dir,right_dir,dataDir;
+	if(argc==2)
+	{
+		overall_directory=DEFAULT_DIRECTORY;
+		file_prefix=std::string(argv[1]);
 
+	}
+	if(argc==3)
+	{
+		overall_directory=std::string(argv[1]);
+		file_prefix=std::string(argv[2]);
+	}
+	
+	//make the subdirectories
+	dataDir=overall_directory;
+	dataDir+="/";
+	dataDir+=file_prefix;
+
+	left_dir=dataDir;
+	left_dir+="/left";
+
+	right_dir=dataDir;
+	right_dir+="/right";
+	
+	
+	
+	
+	
+	//check if directories exist and make them 
+	if(!boost::filesystem::is_directory(left_dir))
+	{
+		//make the overall directory
+		boost::filesystem::path m(left_dir);
+		if(!boost::filesystem::create_directories(m))
+		{
+			std::cerr<<"Directory failed to be created :" <<left_dir<<std::endl;
+			return -1;
+		}
+	}
+	
+	//check if directories exist and make them 
+	if(!boost::filesystem::is_directory(right_dir))
+	{
+		//make the overall directory
+		boost::filesystem::path m(right_dir);
+		if(!boost::filesystem::create_directories(m))
+		{
+			std::cerr<<"Directory failed to be created :" <<right_dir<<std::endl;
+			return -1;
+		}
+	}
+
+	boost::filesystem::current_path(dataDir);
+	
+	//initiate input terminal screen
 	initscr();
 	cbreak();
 	nodelay(stdscr,TRUE);
 	scrollok(stdscr,TRUE);
 	noecho();
 	keypad(stdscr,TRUE);
-	
-	std::string overall_directory,file_prefix,left_dir,right_dir;
-	overall_directory=std::string(argv[1]);
-	file_prefix=std::string(argv[2]);
-	/*Create Directories
-	 */
-	left_dir=overall_directory;
-	left_dir+="/";
-	left_dir+=file_prefix;
-	left_dir+="/left/";
-	
-	right_dir=overall_directory;
-	right_dir+="/";
-	right_dir+=file_prefix;
-	right_dir+="/right/";
-	
-	std::cout<<"Creating Directories\t"<<right_dir<<"\t"<<left_dir<<std::endl;
-	std::stringstream command;
-	std::string char_command;
-	command<<"mkdir -p "<<left_dir;
-	char_command=command.str();
-	addstr(char_command.c_str());
-	
-	system(char_command.c_str());
-	
-	command.str("");
-	char_command.clear();
-	
-	command<<"mkdir -p "<<right_dir;
-	char_command=command.str();
-	addstr(char_command.c_str());
-	system(char_command.c_str());
-
 	stereo::PointGrey bumbleBee;
-	bumbleBee.n_buffer=24;
+	bumbleBee.n_buffer=18;
 	cv::Mat left,right;
 	bool run=true;
 	
@@ -67,39 +96,39 @@ int main(int argc, char * argv[])
 	
 	if(bumbleBee.openStream())
 	{
-		u_int64_t stamp;	
+		u_int64_t stamp,prev;
+		prev=0;
 		std::stringstream l_fname,r_fname;
 		int pressed_key;
 		addstr("Recording");
+		dataDir+="\\";
 		/*output variables
 		 * 
 		 */
 		std::stringstream msg_;
-		std::string char_msgs_;
-		int frame=0;
 		while(run)
 		{
-			if(frame>=15)
-			{
-				addstr("Press F3 to stop Recording\n");
-				frame=0;
-			}
-			++frame;
+			addstr("\nPress s to stop Recording\n");
 			if(bumbleBee.getLatestFrame(left,right,stamp))
 			{
 				/*
 				 * Create file name
 				 */
 				l_fname.str("");
-				l_fname<<left_dir<<"l_"<<stamp<<".ppm";
+				l_fname<<"left\\" <<"l_"<<stamp<<".ppm";
 				
 				r_fname.str("");
-				r_fname<<right_dir<<"r_"<<stamp<<".ppm";
+				r_fname<<"right\\"<<"r_"<<stamp<<".ppm";
 				/*
 				 * save images
 				 */
 				cv::imwrite(l_fname.str(),left);
 				cv::imwrite(r_fname.str(),right);
+				float time=(stamp-prev)*1000.0;
+				msg_.str("");
+				msg_<<"File : "<<l_fname<<"\t Time Taken : "<<time<<std::endl;
+				addstr(msg_.str().c_str());
+				prev=stamp;
 			}
 			
 			else
@@ -108,16 +137,29 @@ int main(int argc, char * argv[])
 			}
 			
 			pressed_key=getch();
-			if(pressed_key==KEY_F(3))
+			if(pressed_key=='s')
 			{
 					run=false;
 					bumbleBee.closeStream();
-					addstr("Exiting Recording Loop");
+					addstr("Exiting Recording Loop -s to close");
 			}
 			refresh();
 		}
-		endwin();
 	}
+	
+	int pressed_key;
+	run =true;
+	addstr("s to Close output");
+	while(run)
+	{
+			pressed_key=getch();
+			if(pressed_key=='s')
+			{
+					run=false;
+					endwin();
+			}
+	}
+	
 	
 	return 1;
 }

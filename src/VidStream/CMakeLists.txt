@@ -1,5 +1,5 @@
-set(VIDSTREAM_SRC "FireWire.cpp;FireWireSettings.cpp;PointGrey.cpp")
-set(VIDSTREAM_HEADERS "FireWire.hpp;FireWireSettings.hpp;PointGrey.hpp")
+set(VIDSTREAM_SRC "FireWire.cpp;FireWireSettings.cpp;PointGrey.cpp;RecordingSettings.cpp")
+set(VIDSTREAM_HEADERS "FireWire.hpp;FireWireSettings.hpp;PointGrey.hpp;RecordingSettings.hpp")
 
 
 add_library(VidStream SHARED

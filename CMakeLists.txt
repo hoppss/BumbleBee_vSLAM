@@ -22,20 +22,22 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE FILEPATH  "Buil
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE FILEPATH "build static libs directory")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE FILEPATH "Build Dynamic Libs directory")
 
-set(BumbleBee_vSLAM_VERSION_MAJOR 1)
-set(BumbleBee_vSLAM_VERSION_MINOR 0)
 
 set(BUILD_ROOT_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 set(BUILD_INCLUDE_DIR ${BUILD_ROOT_DIR}/include)
 
+set(SBA_INCLUDE_DIR /usr/local/include/home/ubuntu/sba-1.6)
+set(SBA_LIBRARY 	/usr/local/lib/home/ubuntu/sba-1.6/build)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package(OpenCV REQUIRED)
+find_package(Boost REQUIRED)
 
  #x86_64
 if( ${USE_TEGRA} STREQUAL "TRUE")
 	#link tegra
-	set(BUILD_CV_LIB opencv_tegra)
+	set(BUILD_CV_LIB opencv_tegra)/
 else()
     #link normal opencv
 	set(BUILD_CV_LIB ${OpenCV_LIBRARIES})
@@ -44,12 +46,30 @@ endif()
 find_package(DC1394 REQUIRED)
 
 
+include_directories(
+  include
+  ${OpenCV_INCLUDE_DIRS}
+  ${EIGEN3_INCLUDE_DIR}
+  /usr/local/include
+  /home/ubuntu/sba-1.6
+  ${Boost_INCLUDE_DIRS}
+)
+
+link_directories(
+	/usr/local/lib
+	/home/ubuntu/sba-1.6/build
+	#/usr/lib/arm-linux-gnueabihf
+)
+
 
 
 
 include_directories(${BUILD_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${SBA_INCLUDE_DIR})
 MESSAGE("${DC1394_LIB_DIR}")
 link_directories(${DC1394_LIB_DIR})
+link_directories(${SBA_LIBRARY})
+link_directories(${Boost_LIBRARY_DIR})
 
 add_subdirectory(src)

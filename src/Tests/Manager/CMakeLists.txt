@@ -1,8 +1,8 @@
-
-add_executable(SingleDetection
-	SingleDetect.cpp
+#change directory TODO
+add_executable(Record
+	RecordLog.cpp
 	)
 	
-target_link_libraries(SingleDetection
+target_link_libraries(Record
 	Manager
 	)

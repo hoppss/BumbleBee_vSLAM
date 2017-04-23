@@ -1,22 +1,19 @@
 
 add_library(Manager 
 	PsuedoManager.cpp
-	FWmanager.cpp
+	VideoManager.cpp
+	${easylogging++_SRC}
 	)
 	
 target_link_libraries(Manager  
 	Analysis
 	VidStream
 	FrontEnd
+	boost_thread
+	boost_system 
+	boost_filesystem
+	ncurses
 	)
-
-#add_library(DataStructures
-#	${RELDATA_SRCS}
-#)
-
-#target_link_libraries(DataStructures
-#	${BUILD_CV_LIB}
-#	)
 
 
 
