@@ -10,4 +10,6 @@ add_library(VidStream SHARED
 target_link_libraries(VidStream PUBLIC
 		${DC1394_LIBRARIES}
 		${OpenCV_LIBRARIES}
+		boost_filesystem
+		boost_system
 		)

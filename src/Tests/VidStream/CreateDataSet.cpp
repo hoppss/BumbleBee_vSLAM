@@ -1,18 +1,15 @@
 
 #include "VidStream/PointGrey.hpp"
-#include <boost/filesystem/operations.hpp>
-#include <boost/filesystem/path.hpp>
-#include <curses.h>
 #include <stdlib.h> 
 
 
 #define LEFT_PREFIX "l"
 #define RIGHT_PREFIX "r"
-#define DEFAULT_DIRECTORY "/home/ubuntu/Recordings"
+#define DEFAULT_DIRECTORY "/media/usb0"
 
 int main(int argc, char * argv[])
 {
-	//Get input variables
+/*	//Get input variables
 	if((argc<2)||(argc>3))
 	{
 		std::cout<<"incorrect number of parameters--expects either of two modes\n";
@@ -101,64 +98,64 @@ int main(int argc, char * argv[])
 		std::stringstream l_fname,r_fname;
 		int pressed_key;
 		addstr("Recording");
-		dataDir+="\\";
+		dataDir+="\\";*/
 		/*output variables
 		 * 
 		 */
-		std::stringstream msg_;
-		while(run)
-		{
-			addstr("\nPress s to stop Recording\n");
-			if(bumbleBee.getLatestFrame(left,right,stamp))
-			{
+	//	std::stringstream msg_;
+	//	while(run)
+	//	{
+	//		addstr("\nPress s to stop Recording\n");
+	//		if(bumbleBee.getLatestFrame(left,right,stamp))
+	//		{
 				/*
 				 * Create file name
 				 */
-				l_fname.str("");
+	/*			l_fname.str("");
 				l_fname<<"left\\" <<"l_"<<stamp<<".ppm";
 				
 				r_fname.str("");
-				r_fname<<"right\\"<<"r_"<<stamp<<".ppm";
+				r_fname<<"right\\"<<"r_"<<stamp<<".ppm";*/
 				/*
 				 * save images
 				 */
-				cv::imwrite(l_fname.str(),left);
-				cv::imwrite(r_fname.str(),right);
-				float time=(stamp-prev)*1000.0;
-				msg_.str("");
-				msg_<<"File : "<<l_fname<<"\t Time Taken : "<<time<<std::endl;
-				addstr(msg_.str().c_str());
-				prev=stamp;
-			}
+	//			cv::imwrite(l_fname.str(),left);
+	//			cv::imwrite(r_fname.str(),right);
+	//			float time=(stamp-prev)*1000.0;
+	//			msg_.str("");
+	//			msg_<<"File : "<<l_fname<<"\t Time Taken : "<<time<<std::endl;
+	//			addstr(msg_.str().c_str());
+	//			prev=stamp;
+	//		}
+	//		
+	//		else
+	//		{
+//				addstr("Failed to fetch latest frame");
+//			}
 			
-			else
-			{
-				addstr("Failed to fetch latest frame");
-			}
-			
-			pressed_key=getch();
-			if(pressed_key=='s')
-			{
-					run=false;
-					bumbleBee.closeStream();
-					addstr("Exiting Recording Loop -s to close");
-			}
-			refresh();
-		}
-	}
+//			pressed_key=getch();
+//			if(pressed_key=='s')
+//			{
+//					run=false;
+//					bumbleBee.closeStream();
+//					addstr("Exiting Recording Loop -s to close");
+//			}
+//			refresh();
+//		}
+//	}
 	
-	int pressed_key;
-	run =true;
-	addstr("s to Close output");
-	while(run)
-	{
-			pressed_key=getch();
-			if(pressed_key=='s')
-			{
-					run=false;
-					endwin();
-			}
-	}
+//	int pressed_key;
+//	run =true;
+//	addstr("s to Close output");
+//	while(run)
+//	{
+//			pressed_key=getch();
+//			if(pressed_key=='s')/
+//			{
+//					run=false;
+//					endwin();
+//			}
+//	}
 	
 	
 	return 1;

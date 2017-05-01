@@ -11,6 +11,19 @@
 #define gainMAX 1023
 #define gainMIN 325 
 
+/*default settings for saving and configuration
+ note that these default settings work assuming a usb stick has been 
+ properly mounted*/
+
+#define DEFAULT_ROOT_IN_ "/home/ubuntu/ConfigurationFiles/Recording"
+#define DEFAULT_ROOT_OUT_ "/media/usb0/Recordings"
+#define DEFAULT_XML_NAME_ "RecordingSettings.xml"
+#define DEFAULT_LOG_NAME_ "recordLog"
+#define DEFAULT_LOG_DIRECTORY "logging"
+#define DEFAULT_DATA_DIRECTORY_NAME_ "data"
+#define DEFAULT_LEFTCAMERA_FOLDER_NAME_ "left"
+#define DEFAULT_RIGHTCAMERA_FOLDER_NAME_ "right"
+
 
 
 #include <dc1394/dc1394.h>
@@ -19,7 +32,13 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+//administration includes for getting times+ dates +filesystems
+
+#include <time.h>
+
 #include <chrono>
+
+#include <boost/filesystem.hpp>
 
 namespace stereo
 {
@@ -60,18 +79,32 @@ class RecordingSettings
 		int n_buffer;
 		bool defaultSet_;//true if using default camera recording settings
 		//outputDirectory Settings
-		std::string logDef_;
+		//folder Names
+		std::string log_folder_;
+		std::string data_folder_;
+		std::string l_image_folder_;
+		std::string r_image_folder_;
+		//filenames
+		std::string recordinglogName_;
+		//utility functions 
+		bool createDir(std::string dir);
+		std::string getStringFormat(time_t inTime);
+		//admin variables
+		time_t starting_time;
 	public:
+		std::string root_in_dir_;//overall input directory
+		std::string root_out_dir_;//overall output directory
 		RecordingSettings();
 		//input + output file xml
 		void write(cv::FileStorage& fs) const;
 		void read(const cv::FileNode& node);	
 		//internal camera settings 
 		bool validateSettings(); //returns true if input settings are valid (within camera thresholds)
-		std::string logName_;
 		std::string xmlName_;
-		std::string outDir_;
-		std::string getxmlDir();
+		void saveToFile();
+		void saveToFile(std::string fullDir);
+		bool readFromFile(std::string inDir);
+		bool createAllDir();
 
 		
 };

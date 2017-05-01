@@ -3,7 +3,7 @@
 
 int main(int argc, char *argv[])
 {
-	stereo::PointGrey bumbleBee;
+	/*stereo::PointGrey bumbleBee;
 	
 	bumbleBee.dcinit();
 	bumbleBee.updateSettings();
@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		}
 		bumbleBee.closeStream();
 	}
-	cv::destroyAllWindows();
+	cv::destroyAllWindows();*/
 	
 	
    return 0;

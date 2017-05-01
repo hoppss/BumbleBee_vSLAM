@@ -5,23 +5,23 @@ namespace stereo
 
 PointGrey::PointGrey()
 {
-		iso_speed=DC1394_ISO_SPEED_400;
-		frame_rate=DC1394_FRAMERATE_15;
-		video_mode=DC1394_VIDEO_MODE_1024x768_MONO16;
-		color_coding=DC1394_COLOR_CODING_MONO16;
-		n_buffer=8;
-		autoExpose_=true;
-		autoShutter_=true;
-		autoGain_=true;
-		streaming_=false;
-		whiteBalance_=false;
-		
-		brightness_=1;
-		shutter_=0.01;
-		gain_=600;
-		ubal_=63;
-		vbal_=20;
-		expose_=800;
+	//	iso_speed=DC1394_ISO_SPEED_400;
+	//	frame_rate=DC1394_FRAMERATE_15;
+	//	video_mode=DC1394_VIDEO_MODE_1024x768_MONO16;
+	//	color_coding=DC1394_COLOR_CODING_MONO16;
+	//	n_buffer=8;
+	//	autoExpose_=true;
+	//	autoShutter_=true;
+	//	autoGain_=true;
+	//	streaming_=false;
+	//	whiteBalance_=false;
+	//	
+	///	brightness_=1;
+	//	shutter_=0.01;
+	//	gain_=600;
+	//	ubal_=63;
+	//	vbal_=20;
+	//	expose_=800;
 		
 
 		
@@ -29,63 +29,63 @@ PointGrey::PointGrey()
 
 PointGrey::~PointGrey()
 {
-	if(init_1394)
-	{
-		closeCamera();
-	}
+	//if(init_1394)
+//	{
+//		closeCamera();
+//	}
 }
 
-void PointGrey::setBasicSettings(std::vector<dc1394error_t> &err)
-{
-	err.push_back(dc1394_video_set_iso_speed(camera, iso_speed));
-	err.push_back(dc1394_video_set_mode(camera,video_mode));
-	err.push_back(dc1394_video_set_framerate(camera,frame_rate));
-	err.push_back(dc1394_capture_setup(camera,n_buffer,DC1394_CAPTURE_FLAGS_DEFAULT));
+//void PointGrey::setBasicSettings(std::vector<dc1394error_t> &err)
+//{
+//	err.push_back(dc1394_video_set_iso_speed(camera, iso_speed));
+//	err.push_back(dc1394_video_set_mode(camera,video_mode));
+//	err.push_back(dc1394_video_set_framerate(camera,frame_rate));
+//	err.push_back(dc1394_capture_setup(camera,n_buffer,DC1394_CAPTURE_FLAGS_DEFAULT));
 
-}
+//}
 
-void PointGrey::setBright(std::vector< dc1394error_t >& err)
-{
+//void PointGrey::setBright(std::vector< dc1394error_t >& err)
+//{
 	/*always turn on, check within brightness limits*/
-	if((brightness_<=brightMAX)&&(brightness_>=brightMIN))
-	{
-		err.push_back(DC1394_SUCCESS);
-	}
-	else
-	{
-		err.push_back(DC1394_FAILURE);
-	}
-	if(checkUpdated(err))
-	{
-		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_ON));
-		err.push_back(dc1394_feature_set_mode(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_FEATURE_MODE_MANUAL));
-		err.push_back(dc1394_feature_set_value(camera,DC1394_FEATURE_BRIGHTNESS,brightness_));	
-	}
-}
+	//if((brightness_<=brightMAX)&&(brightness_>=brightMIN))
+	//{
+	//	err.push_back(DC1394_SUCCESS);
+	//}
+	//else
+	//{
+	//	err.push_back(DC1394_FAILURE);
+	//}
+	//if(checkUpdated(err))
+	//{
+	//	err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_ON));
+	//	err.push_back(dc1394_feature_set_mode(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_FEATURE_MODE_MANUAL));
+	//	err.push_back(dc1394_feature_set_value(camera,DC1394_FEATURE_BRIGHTNESS,brightness_));	
+	//}
+//}
 
-void PointGrey::setExposure(std::vector< dc1394error_t >& err)
-{
-	if(autoExpose_)
-	{
-		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
-		err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_AUTO));
-	}
-	else
-	{
+//void PointGrey::setExposure(std::vector< dc1394error_t >& err)
+//{
+	//if(autoExpose_)
+	//{
+	//	err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
+	//	err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_AUTO));
+	//}
+	//else
+	//{
 		//set mode
-		if((expose_<=expoMAX)&&(expose_>=expoMIN))
-		{
-			err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
-			err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_MANUAL));
-			err.push_back(dc1394_feature_set_value(camera, DC1394_FEATURE_EXPOSURE,expose_));
-		}
-		else
-		{
-			err.push_back(DC1394_FAILURE);
-		}
-	}
-}
-
+	//	if((expose_<=expoMAX)&&(expose_>=expoMIN))
+	//	{
+	//		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
+	//		err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_MANUAL));
+	//		err.push_back(dc1394_feature_set_value(camera, DC1394_FEATURE_EXPOSURE,expose_));
+	//	}
+	//	else
+	//	{
+	//		err.push_back(DC1394_FAILURE);
+	//	}
+//	}
+//}
+/*
 void PointGrey::setGain(std::vector< dc1394error_t >& err)
 {
 	if(autoGain_)
@@ -150,29 +150,29 @@ void PointGrey::setWBalance(std::vector< dc1394error_t >& err)
 }
 
 
+*/
 
-
-bool PointGrey::checkUpdated(std::vector< dc1394error_t > err)
-{
+//bool PointGrey::checkUpdated(std::vector< dc1394error_t > err)
+//{
 	/*cycle through returned error codes, and return false if any of the updates
 	 * failed to set*/
-	bool Success=true;
-	for(int index=0;index<err.size();++index)
-	{
-		if(err.at(index)!=DC1394_SUCCESS)
-		{
-			Success=false;
-		}
-	}
-	return Success;
-}
+//	bool Success=true;
+//	for(int index=0;index<err.size();++index)
+//	{
+//		if(err.at(index)!=DC1394_SUCCESS)
+//		{
+//			Success=false;
+//		}
+//	}
+//	return Success;
+//}
 
 
 
-bool PointGrey::updateSettings()
-{
+//bool PointGrey::updateSettings()
+//{
 	/*attempt to change all the settings at once with new values*/
-	std::vector<dc1394error_t> basic_e,expose_e,balance_e,shutter_e,gain_e,bright_e;
+/*	std::vector<dc1394error_t> basic_e,expose_e,balance_e,shutter_e,gain_e,bright_e;
 	//holds results of each error code, if any of the vectors are a failure, immediate exit and return false
 	setBasicSettings(basic_e);
 	if(checkUpdated(basic_e))
@@ -289,10 +289,11 @@ void PointGrey::convertToMat(dc1394video_frame_t* src)
 	s_pt=(short int*)&stereo_frame.image[0];
 	memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
 	cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
-	free(s_pt);
+	free(s_pt);*/
 	/*no need to free the d_pt, as bayer image is constantly overwritten, and has a 
 	 * pre-set size specific to the bumblebee camera image*/
-}
+	/*
+//}
 
 
 bool PointGrey::openStream()
@@ -393,7 +394,7 @@ bool PointGrey::getLatestFrame(cv::Mat& l, cv::Mat& r,uint64_t &stamp)
 	return Success;
 }
 
-
+*/
 	
 	
 	
