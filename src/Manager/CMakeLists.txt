@@ -1,28 +1,23 @@
 
-add_library(FireWireVideo
-	FireWireManager.cpp
-	FireWireSettings.cpp
-	)
-	
-target_link_libraries(FireWireVideo
-	boost_thread
-	boost_system 
-	boost_filesystem
-)
+
+#	FireWireSettings.cpp
+#
 
 
 add_library(Manager 
+	FireWireSettings.cpp
+	FireWireManager.cpp
 	PsuedoManager.cpp
 	VideoManager.cpp
 	)
 	
 target_link_libraries(Manager  
-	VidStream
 	boost_thread
 	boost_system 
 	boost_filesystem
 	ncurses
-	FireWireVideo
+	${DC1394_LIBRARIES}
+	${OpenCV_LIBRARIES}
 	)
 
 

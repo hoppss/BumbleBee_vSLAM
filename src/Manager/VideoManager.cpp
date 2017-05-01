@@ -14,7 +14,7 @@ VideoManager::VideoManager()
 	{
 		Initialized_=true;
 		oLog=spdlog::basic_logger_mt("system", genfullDir(syslog));
-		oLog->set_pattern("[%H:%M:%S] [thread %t] %v ");
+		oLog->set_pattern("[%H:%M:%S:%e] [thread %t] %v ");
 		oLog->info("Loaded configuration succesfully, beginning nCurses Window");
 		initscr();
 		cbreak();
@@ -44,7 +44,7 @@ VideoManager::VideoManager(std::string RecordingSettingsDirectory)
 {
 	starting_time=std::time(0);
 	//Loads with the specified RecordingSettings	
-	recConfig_.readFromFile(RecordingSettingsDirectory);
+	//recConfig_.readFromFile(RecordingSettingsDirectory);
 }
 
 
@@ -244,6 +244,7 @@ bool VideoManager::createDir(std::string dir)
 
 void VideoManager::pollThread()
 {
+
 	bool killThread=false;
 
 	addstr("Press 's' to stop video recording\n");
@@ -251,36 +252,62 @@ void VideoManager::pollThread()
 	{
 		refresh();
 		int pressed_key=getch();
-		oLog->info("Polling");
 		if(pressed_key=='s')
 		{			
 			killThread=true;
 			oLog->info("Terminate acknowledged in PollThread_");
 		}
-		usleep(500000);
+		usleep(10000);
 	}	
-	oLog->info("Locking mutexTerminate_");
 	WriteLock tLock(mutexTerminate_);
 	Terminate_=true;
 	tLock.unlock();
-	oLog->info("Terminate set to True and mutexTerminate_ unlocked");
+	oLog->info("Terminate Status set to True");
 
 
 }
 
 void VideoManager::mainManagerThread()
 {
+	////////////
+	//handshaking +initialization
+	///////////
+	
+
 	//Create input output thread
 	pollThread_=new boost::thread(&VideoManager::pollThread, this);
 	bumbleBee_= new FireWireManager(genfullDir(camlog));
 	
+	
+	/****
+	 * START HERE, loop until status is not FAILED or INITIALIZED
+	 * if Waiting, then send the record command
+	 * 
+	 */
+
+	
+	//////////////
+	//assume configured
+	///////////
+
 	
 	bool killLoop=false;
 	while(!killLoop)
 	{
 		ReadLock tLock(mutexTerminate_);
 		killLoop=Terminate_;
-		usleep(5000);
+		tLock.unlock();
+		
+		/******
+		 * if terminate, then send the stop and check FireWireManager has cleaned up properly
+		 * , then delete all the pointer threads and polling threads*/
+		
+		if(killLoop)
+		{
+			bumbleBee_->SendCommand(FireWireManager::Stop);
+			
+		}
+		usleep(1000);
 	}
 	
 	oLog->critical("Kill Main Process signal Acknowledged, mainManagerThread exiting");

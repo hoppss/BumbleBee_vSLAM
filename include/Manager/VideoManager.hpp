@@ -8,7 +8,6 @@
 #include <iostream>
 #include <boost/filesystem.hpp>
 
-#include "VidStream/PointGrey.hpp"
 #include "Manager/FireWireManager.hpp"
 
 ////////////////////////////
@@ -70,7 +69,6 @@
 // these define the logging configurations i.e the formatting for each one
 
 #include "spdlog/spdlog.h"
-#include "VidStream/RecordingSettings.hpp"
 
 #include <boost/thread.hpp>
 #include <queue>
@@ -97,7 +95,6 @@ class VideoManager
 			rootLfolder,
 			rootRfolder
 		};
-		RecordingSettings recConfig_;//basic configuration of the camera
 		///////////////
 		///Directory and output variables
 		////////////////

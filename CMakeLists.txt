@@ -37,7 +37,7 @@ find_package(Boost REQUIRED)
  #x86_64
 if( ${USE_TEGRA} STREQUAL "TRUE")
 	#link tegra
-	set(BUILD_CV_LIB opencv_tegra)/
+	set(BUILD_CV_LIB opencv_tegra)
 else()
     #link normal opencv
 	set(BUILD_CV_LIB ${OpenCV_LIBRARIES})
