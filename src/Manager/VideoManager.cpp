@@ -246,7 +246,6 @@ void VideoManager::pollThread()
 {
 
 	bool killThread=false;
-
 	addstr("Press 's' to stop video recording\n");
 	while(!killThread)
 	{
@@ -276,40 +275,74 @@ void VideoManager::mainManagerThread()
 
 	//Create input output thread
 	pollThread_=new boost::thread(&VideoManager::pollThread, this);
-	bumbleBee_= new FireWireManager(genfullDir(camlog));
+	bumbleBee_= new FireWireManager(DEFAULT_FIREWIRESETTINGS_,genfullDir(camlog));
 	
-	
-	/****
-	 * START HERE, loop until status is not FAILED or INITIALIZED
-	 * if Waiting, then send the record command
-	 * 
-	 */
+	bool killLoop=false; //local kill loop entry, this way mutex reading is reduced (i think)
 
 	
-	//////////////
-	//assume configured
-	///////////
-
+	//loop until the FireWiremanager has been configured and has setup libdc1394
+	bool configured=false;
 	
-	bool killLoop=false;
+	while(!configured)
+	{
+		ReadLock tLock(mutexTerminate_);
+		killLoop=Terminate_;
+		tLock.unlock();
+		if(!killLoop)
+		{
+			std::stringstream msg_;
+			//if no exit command has been sent from the user,check whether FireWireManager is ready
+			FireWireManager::FireWireState pollStatus=bumbleBee_->getCurrentState();
+			msg_<<"Current FireManager Status received : "<<bumbleBee_->StateToString(pollStatus);
+			oLog->info(msg_.str().c_str());
+			switch(pollStatus)
+			{
+				case FireWireManager::Waiting :
+				{
+					oLog->info("Sending record Command");
+					bumbleBee_->SendCommand(FireWireManager::Record);
+					configured=true;
+					killLoop=false;			
+					break;
+				}
+				case FireWireManager::Recording :
+				{
+					oLog->critical("FireWireManager is already Recording (how??) terminating");
+					killLoop=true;
+					configured=true;
+					break;
+				}
+				case FireWireManager::FAILED :
+				{
+					oLog->info("FireWiremanager failed to configure correctly, closing");
+					killLoop=true;
+					configured=true;
+					break;
+				}
+			}
+		}
+		else
+		{
+			configured=true;
+			oLog->critical("VideoManager terminated before FireWireManager was configured");
+		}
+		
+		usleep(5000);
+	}
+
 	while(!killLoop)
 	{
 		ReadLock tLock(mutexTerminate_);
 		killLoop=Terminate_;
 		tLock.unlock();
-		
-		/******
-		 * if terminate, then send the stop and check FireWireManager has cleaned up properly
-		 * , then delete all the pointer threads and polling threads*/
-		
+
 		if(killLoop)
 		{
 			bumbleBee_->SendCommand(FireWireManager::Stop);
-			
+
 		}
 		usleep(1000);
 	}
-	
 	oLog->critical("Kill Main Process signal Acknowledged, mainManagerThread exiting");
 }
 

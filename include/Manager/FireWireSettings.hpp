@@ -6,6 +6,8 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+#define DEFAULT_FIREWIRESETTINGS_ "/home/ubuntu/ConfigurationFiles/RecordingSettings.xml"
+
 
 //////////////////////
 ////////Camera Settings Definitions

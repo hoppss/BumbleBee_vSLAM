@@ -1,9 +1,14 @@
-#include "VidStream/RecordingSettings.hpp"
+#include "Manager/FireWireSettings.hpp"
 
 int main(int argc,char *argv[])
 {
-	stereo::RecordingSettings a;
-	a.saveToFile();
+	stereo::FireWireSettings a;
+	
+	cv::FileStorage myFile("/home/ubuntu/ConfigurationFiles/RecordingSettings.xml",cv::FileStorage::WRITE);
+	
+	myFile<<"RecordingSettings"<<a;
+	
+	myFile.release();
 	
 	return 0;
 }

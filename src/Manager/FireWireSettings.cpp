@@ -43,6 +43,7 @@ void FireWireSettings::read(const cv::FileNode& node)
 	ubal_=static_cast<uint32_t>(temp);
 	node["RAW_brightness_val"]>>temp;
 	brightness_=static_cast<uint32_t>(temp);
+	
 }
 
 
@@ -71,6 +72,7 @@ void FireWireSettings::write(cv::FileStorage& fs) const
 
 void FireWireSettings::setBasicSettings(std::vector< dc1394error_t >& err, dc1394camera_t* camera)
 {
+	err.push_back(dc1394_video_set_transmission(camera,DC1394_OFF));
 	err.push_back(dc1394_video_set_iso_speed(camera, iso_speed));
 	err.push_back(dc1394_video_set_mode(camera,video_mode));
 	err.push_back(dc1394_video_set_framerate(camera,frame_rate));
