@@ -2,8 +2,17 @@
 
 namespace stereo {
 
-FireWireManager::FireWireManager(std::string configDir, std::string logDir)
+FireWireManager::FireWireManager(std::string configDir, std::string logDir,std::string rootLeft,std::string rootRight)
 {
+	//sets all the thread running flags to false
+	dc1394Running_=false;
+	debayerRunning_=false;
+	copyLeftRunning_=false;
+	copyRightRunning_=false;
+	
+	leftDir_=rootLeft;
+	rightDir_=rootRight;
+	
 	currentState_=Initializing;
 	oLog=spdlog::basic_logger_mt("FireWireManager", logDir); //create a logger
 	oLog->set_pattern("[%H:%M:%S:%e] [thread %t] %v ");//set the log format to time, thread number
@@ -22,24 +31,27 @@ FireWireManager::FireWireManager(std::string configDir, std::string logDir)
 }
 
 
-FireWireManager::FireWireManager(std::string logDir)
+FireWireManager::FireWireManager(std::string logDir,std::string rootLeft,std::string rootRight)
 {
+		//sets all the thread running flags to false
+	dc1394Running_=false;
+	debayerRunning_=false;
+	copyLeftRunning_=false;
+	copyRightRunning_=false;
+	
 	currentState_=Initializing;
+	
+	leftDir_=rootLeft;
+	rightDir_=rootRight;
 	oLog=spdlog::basic_logger_mt("FireWireManager", logDir);
 	oLog->set_pattern("[%H:%M:%S:%e] [thread %t] %v ");
 	
 	mainThread_= new boost::thread(&FireWireManager::mainLoop,this);
-	
 }
 
 FireWireManager::~FireWireManager()
 {
 	oLog->info("FireWireManager destructor called");
-	if(init_1394_)
-	{
-		oLog->info("Free libdc1394");
-		closeCamera();
-	}
 }
 
 
@@ -48,14 +60,13 @@ FireWireManager::~FireWireManager()
 ///////////internal states
 void FireWireManager::processCommandQ()
 {
+	
 	ReadLock comRQLock(mutex_commandQ_);//command Read Queue lock
+	int commandSize=commandQ_.size();
+	comRQLock.unlock();
+	std::stringstream msg_;//message buffer
 	if(commandQ_.size()>0)
 	{
-		std::stringstream msg_;//message buffer
-		msg_<<"command Queue Size : "<<commandQ_.size();
-		oLog->info(msg_.str().c_str());
-		comRQLock.unlock();
-		
 		//attain a writing lock to pop the front of the queue
 		WriteLock comWQLock(mutex_commandQ_);
 		FireWireCommands toProcess=commandQ_.front(); //Read it
@@ -64,34 +75,24 @@ void FireWireManager::processCommandQ()
 		//update the internal State
 		switch(toProcess)
 		{
-			case Record:
-			{	
-				//Record command Received
-				WriteLock stateWLock(mutexState_);
-				if(currentState_&Waiting)
-				{
-					currentState_=Recording;
-					oLog->info("Recording State Set");	
-					dc1394_video_set_transmission(camera_,DC1394_ON);
-				}
-				else
-				{
-					oLog->info("Cannot transition to Recording State");
-				}
-				stateWLock.unlock();
-				break;
-			}
 			case Stop:
 			{
 				WriteLock stateWLock(mutexState_);
-				if(currentState_&Recording) //if state is recording
+				switch(currentState_)
 				{
-					currentState_=Closing;
-					oLog->info("Set Closing State");
-				}
-				else
-				{
-					oLog->info("Invalid State, cannot transition from recording");
+					case Closing:
+					{
+						oLog->critical("FireWireManager already attempting to close");
+						break;
+					}
+					case Recording:
+					{
+							dc1394_video_set_transmission(camera_,DC1394_OFF);
+							currentState_=Closing;
+							oLog->info("Set Closing State");
+							break;
+					}
+					
 				}
 				stateWLock.unlock();
 				break;
@@ -136,11 +137,6 @@ std::string FireWireManager::StateToString(FireWireManager::FireWireState inStat
 			return "Initializing";
 			break;
 		}
-		case Waiting:
-		{
-			return "Waiting";
-			break;
-		}
 		case Recording:
 		{
 			return "Recording";
@@ -154,6 +150,11 @@ std::string FireWireManager::StateToString(FireWireManager::FireWireState inStat
 		case FAILED:
 		{
 			return "Failed";
+			break;
+		}
+		case ShutDown:
+		{
+			return "Shutdown";
 			break;
 		}
 	}
@@ -174,6 +175,8 @@ void FireWireManager::mainLoop()
 	boost::thread *debayerThread_; //debayers and sets image Region of interests
 	boost::thread *copyLeftThread_;//copies to the hard drive
 	boost::thread *copyRightThread_;//copies to the hard drive
+	
+	
 	
 	oLog->info("entered Main Loop");
 	bool killLoop=false;
@@ -196,11 +199,19 @@ void FireWireManager::mainLoop()
 		{//if they are valid and were set, then enter the waiting state			
 			oLog->info("FireWireManager initialized, entering Wait State");
 			WriteLock stateLock(mutexState_);
-			currentState_=Waiting;
+			currentState_=Recording;
 			stateLock.unlock();
-			
 			//instantiate the Threads
-			
+			dc1394Thread_= new boost::thread(&FireWireManager::getDC1394Frame,this);
+			debayerThread_= new boost::thread(&FireWireManager::debayerFrame,this);
+
+			//Record command Received
+			WriteLock stateWLock(mutexState_);
+			currentState_=Recording;
+			oLog->info("Recording State Set");	
+			dc1394_video_set_transmission(camera_,DC1394_ON);
+			stateWLock.unlock();
+			killLoop=false;
 		}
 		else
 		{
@@ -218,8 +229,35 @@ void FireWireManager::mainLoop()
 	while(!killLoop)
 	{
 		processCommandQ();
-		usleep(1000);
+		FireWireState readState=getCurrentState();
+		
+		switch(readState)
+		{
+			case Closing:
+			{
+				oLog->info("FireWire Terminate acknowledged by main loop");
+				killLoop=true;
+				break;
+			}
+			case FAILED:
+			{
+				oLog->info("ERROR, status set to failed, terminating");
+				killLoop=true;
+				break;
+			}
+			usleep(1000);
+			
+		}
+
 	}
+	
+	waitThreads();
+	if(init_1394_)
+	{
+		oLog->info("Free libdc1394");
+		closeCamera();
+	}
+
 	oLog->info("main loop killed, FireWire Terminating");
 	
 	
@@ -231,36 +269,233 @@ void FireWireManager::mainLoop()
 
 void FireWireManager::getDC1394Frame()
 {
+	WriteLock RunningLock(mutex_runningDC1394_);
+	dc1394Running_=true;	
+	RunningLock.unlock();
+	oLog->info("DC1394 Thread Activated");
+	
 	bool killLoop=false;
 	while(!killLoop)
 	{
-		ReadLock stateLock(mutexState_);
-		FireWireState polledState=currentState_;
-		stateLock.unlock();
+		FireWireState polledState=getCurrentState();
 		switch(polledState)
 		{
 			case Recording:
 			{
-					dc1394video_frame_t * tempFrame;
-					dc1394error_t deque,enque;
+				std::stringstream feedbackMsg_;
+				//copy from DMA ring buffer to dcQ_ 
+				dc1394video_frame_t * latestFrame;
+				dc1394video_frame_t BufferFrame;
+				dc1394error_t deque,enque;
 				
+				deque=dc1394_capture_dequeue(camera_,DC1394_CAPTURE_POLICY_WAIT,&latestFrame);
 				
+				if(deque==DC1394_SUCCESS)
+				{
+					std::stringstream feedbackMsg_;
+					//check if the frame has been corrupted
+					feedbackMsg_<<"Frame Info: [frames behind - "<<latestFrame->frames_behind<<"] [Buffer Id - "<< latestFrame->id<<"]";
+					feedbackMsg_<<" [timestamp - "<<latestFrame->timestamp<<"]";
+					//copyMetaData
+					memcpy(&BufferFrame,latestFrame,sizeof(dc1394video_frame_t)); //copy MetaData
+					BufferFrame.allocated_image_bytes=0;
+					BufferFrame.image=NULL;
+					
+					
+					dc1394_deinterlace_stereo_frames(latestFrame,&BufferFrame,DC1394_STEREO_METHOD_INTERLACED);
+					//decode the video message into seperate left and right images (as opposed to mixed)
+					
+					WriteLock dcQLock(mutex_dcQ_);
+					dcQ_.push(BufferFrame);
+					dcQLock.unlock();
+					oLog->info(feedbackMsg_.str().c_str());
+				}
+				else
+				{
+					oLog->warn("Deque failed");
+				}
+				
+				enque=dc1394_capture_enqueue(camera_,latestFrame);
 				break;
 			}
 			case Closing:
 			{
-				//
+				oLog->info("Dc1394 Thread Terminate acknowledged");
+				killLoop=true;
 				break;
 			}
 			
 		}
 		
-		
-		
-		usleep(20);
+		usleep(1000);
 	}
+
+	WriteLock RunningLockClose(mutex_runningDC1394_);
+	dc1394Running_=false;	
+	RunningLockClose.unlock();
 	
 }
+
+void FireWireManager::debayerFrame()
+{
+	WriteLock RunningLock(mutex_runningDebayer_);
+	debayerRunning_=true;	
+	RunningLock.unlock();
+	oLog->info("Debayer Thread Activated");
+	
+	
+	cv::Mat bayerImage=cv::Mat(1536,1024,CV_8UC1);
+	cv::Mat outputImage=cv::Mat(1536,1024,CV_8UC1);
+	cv::Mat left_img=outputImage(cv::Rect(0,768,1024,768));
+	cv::Mat right_img=outputImage(cv::Rect(0,0,1024,768));
+	
+	bool killLoop=false;
+	while(!killLoop)
+	{
+		FireWireState polledState=getCurrentState();
+		switch(polledState)
+		{
+			case Recording:
+			{
+				//check the size of the frame buffer
+				ReadLock dcQRLock(mutex_dcQ_);
+				int totalMessages=dcQ_.size();
+				dcQRLock.unlock();
+				if(totalMessages>0)
+				{
+					std::stringstream feedbackMsg;
+					WriteLock dcQWLock(mutex_dcQ_);
+					dc1394video_frame_t LatestFrame=dcQ_.front();
+					dcQ_.pop();
+					dcQWLock.unlock();
+					
+					feedbackMsg<<"debayer info [Timestamp - "<<LatestFrame.timestamp<<"]";
+					
+					short int * d_pt=(short int*)&bayerImage.data[0];
+					short int * s_pt=(short int*)&LatestFrame.image[0];		
+					memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
+					cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
+					free(s_pt);
+					
+					///Try copy
+					std::stringstream imageNameLeft;
+					imageNameLeft<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+					cv::imwrite(imageNameLeft.str(),left_img);
+					
+					std::stringstream imageNameRight;
+					imageNameRight<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+					cv::imwrite(imageNameRight.str(),right_img);
+					
+					//COPY INTO THE RIGHT MAT Q
+					oLog->info(feedbackMsg.str().c_str());
+				}
+				break;
+			}
+			case Closing:
+			{
+				oLog->info("Debayer Thread Terminate acknowledged");
+				killLoop=true;
+				break;
+			}
+		}
+		usleep(1000);
+	}
+	
+	WriteLock RunningLockClose(mutex_runningDebayer_);
+	debayerRunning_=true;	
+	RunningLockClose.unlock();
+}
+
+void FireWireManager::copyLeftImages()
+{
+	WriteLock RunningLock(mutex_runningCopyLeft_);
+	copyLeftRunning_=true;	
+	RunningLock.unlock();
+	oLog->info("Copy Left Images Thread Activated");
+	
+	bool killLoop=false;
+	while(!killLoop)
+	{
+		FireWireState polledState=getCurrentState();
+		switch(polledState)
+		{
+			case Recording:
+			{
+				ReadLock leftCopyRLock(mutex_leftMatQ_);
+				int totalMessages=leftMat_.size();
+				leftCopyRLock.unlock();
+				if(totalMessages>0)
+				{
+						////
+				}
+				break;
+			}
+			case Closing:
+			{
+				oLog->info("Dc1394 Thread Terminate acknowledged");
+				killLoop=true;
+				break;
+			}
+			
+		}
+		
+		usleep(1000);
+	}
+
+	WriteLock RunningLockClose(mutex_runningCopyLeft_);
+	copyLeftRunning_=false;	
+	RunningLockClose.unlock();
+}
+
+
+
+
+
+
+
+void FireWireManager::waitThreads()
+{
+	
+	bool ThreadsClosed=false;
+	bool localCopyDC1394;
+	bool localCopyDebayer;
+	bool localCopyLeft;
+	bool localCopyRight;
+	while(!ThreadsClosed)
+	{
+		//lock each state and copy them
+		ReadLock dcLock(mutex_runningDC1394_);
+		localCopyDC1394=dc1394Running_;
+		dcLock.unlock();
+		
+		ReadLock debLock(mutex_runningDebayer_);
+		localCopyDebayer=debayerRunning_;
+		debLock.unlock();
+		
+		ReadLock leftLock(mutex_runningCopyLeft_);
+		localCopyLeft=copyLeftRunning_;
+		leftLock.unlock();
+		
+		ReadLock rightLock(mutex_runningCopyRight_);
+		localCopyRight=copyRightRunning_;
+		rightLock.unlock();
+		
+		//if they are all false, then unpause
+		if(!localCopyDC1394&&!localCopyDebayer&&!localCopyLeft&&!localCopyRight)
+		{
+			ThreadsClosed=true;
+		}
+		usleep(2000);
+	}
+	oLog->info("Thread status -- All closed successfully");	
+	WriteLock status(mutexState_);
+	currentState_=ShutDown;
+	status.unlock();
+}
+
+
+
+
 
 
 

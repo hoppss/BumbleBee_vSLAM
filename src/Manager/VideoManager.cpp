@@ -27,17 +27,6 @@ VideoManager::VideoManager()
 	{
 		std::cout<<"Failed to create directories, Flag to Terminate"<<std::endl;
 	}
-
-//	addstr(outConfig_.getDir(OutputSettings::Root).c_str());
-	
-		//iso_speed=DC1394_ISO_SPEED_400;
-		//frame_rate=DC1394_FRAMERATE_15;
-		//video_mode=DC1394_VIDEO_MODE_1024x768_MONO16;
-		//color_coding=DC1394_COLOR_CODING_MONO16;
-	
-		//my_logger->info("DEFAULT FIREWIRE SETTINGS IN USE");
-		
-	//	recording_=false;
 }
 
 VideoManager::VideoManager(std::string RecordingSettingsDirectory)
@@ -63,8 +52,8 @@ VideoManager::~VideoManager()
 		if(pressed_key=='s')
 		{			
 				loop=false;
-			}
-			usleep(100000);
+		}
+		usleep(100000);
 		}
 		endwin();
 	}
@@ -262,8 +251,6 @@ void VideoManager::pollThread()
 	Terminate_=true;
 	tLock.unlock();
 	oLog->info("Terminate Status set to True");
-
-
 }
 
 void VideoManager::mainManagerThread()
@@ -275,7 +262,7 @@ void VideoManager::mainManagerThread()
 
 	//Create input output thread
 	pollThread_=new boost::thread(&VideoManager::pollThread, this);
-	bumbleBee_= new FireWireManager(DEFAULT_FIREWIRESETTINGS_,genfullDir(camlog));
+	bumbleBee_= new FireWireManager(DEFAULT_FIREWIRESETTINGS_,genfullDir(camlog),genfullDir(rootLfolder),genfullDir(rootRfolder));
 	
 	bool killLoop=false; //local kill loop entry, this way mutex reading is reduced (i think)
 
@@ -297,18 +284,17 @@ void VideoManager::mainManagerThread()
 			oLog->info(msg_.str().c_str());
 			switch(pollStatus)
 			{
-				case FireWireManager::Waiting :
+				case FireWireManager::Initializing :
 				{
-					oLog->info("Sending record Command");
-					bumbleBee_->SendCommand(FireWireManager::Record);
-					configured=true;
+					oLog->info("Sending record Still Initializing");
+					configured=false;//continue waiting
 					killLoop=false;			
 					break;
 				}
 				case FireWireManager::Recording :
 				{
-					oLog->critical("FireWireManager is already Recording (how??) terminating");
-					killLoop=true;
+					oLog->critical("FireWireManager is running");
+					killLoop=false;
 					configured=true;
 					break;
 				}
@@ -324,25 +310,39 @@ void VideoManager::mainManagerThread()
 		else
 		{
 			configured=true;
+			killLoop=true;
 			oLog->critical("VideoManager terminated before FireWireManager was configured");
 		}
 		
 		usleep(5000);
 	}
+	
 
-	while(!killLoop)
+	while(!killLoop)//wait until user has told the program to exit
 	{
 		ReadLock tLock(mutexTerminate_);
 		killLoop=Terminate_;
 		tLock.unlock();
-
-		if(killLoop)
-		{
-			bumbleBee_->SendCommand(FireWireManager::Stop);
-
-		}
-		usleep(1000);
+		usleep(4000);
 	}
+	
+	oLog->info("Video Manager Terminate command acknowledged, sending Stop command to FireWireManager");
+	bumbleBee_->SendCommand(FireWireManager::Stop);
+	
+	bool wait=true; //true while waiting for FireWireManager to clean up threads and memory
+	FireWireManager::FireWireState pollState;//holds the polled firewiremanager internal state
+	while(wait)
+	{
+		pollState=bumbleBee_->getCurrentState();
+		if(pollState&FireWireManager::ShutDown)
+		{
+			wait=false;
+			oLog->critical("fireWiremanager has been shutdown");
+		}
+		usleep(4000);
+	}
+	
+	
 	oLog->critical("Kill Main Process signal Acknowledged, mainManagerThread exiting");
 }
 

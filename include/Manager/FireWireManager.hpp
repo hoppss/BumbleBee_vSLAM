@@ -27,8 +27,7 @@ class FireWireManager
 	public:
 		enum FireWireCommands
 		{
-			Record=1,
-			Stop=2
+			Stop=1
 		};
 		
 		//Initializing -> still configuring LIBDC1394 + checking settings
@@ -41,13 +40,13 @@ class FireWireManager
 		enum FireWireState
 		{
 			Initializing=0,
-			Waiting=1,
 			Recording=2,
 			Closing=3,
 			FAILED=4,
+			ShutDown=5,
 		};
-		FireWireManager(std::string configDir,std::string logDir);//includes XMl firewire settings directory
-		FireWireManager(std::string logDir);//just the full directory to Log
+		FireWireManager(std::string configDir,std::string logDir,std::string rootLeft,std::string rootRight);//includes XMl firewire settings directory
+		FireWireManager(std::string logDir,std::string rootLeft,std::string rootRight);//just the full directory to Log
 		~FireWireManager();
 		//external interfaces
 		void SendCommand(FireWireCommands command);
@@ -59,18 +58,34 @@ class FireWireManager
 		std::queue<FireWireCommands> commandQ_;//holds all the commands 
 					//image processing Queue
 		std::queue<dc1394video_frame_t> dcQ_;//
+		std::queue<cv::Mat> leftMat_;//
+		std::queue<cv::Mat> rightMat_;//
 
 		//Locks
 		boost::shared_mutex mutex_commandQ_;
 		boost::shared_mutex mutexTerminate_;
 		boost::shared_mutex mutexState_;
+			//thread status locks
+		boost::shared_mutex mutex_runningDC1394_;
+		boost::shared_mutex mutex_runningDebayer_;
+		boost::shared_mutex mutex_runningCopyLeft_;
+		boost::shared_mutex mutex_runningCopyRight_;
 				//image processing Locks
 		boost::shared_mutex mutex_dcQ_;
 		boost::shared_mutex mutex_debayerQ_;
-		dc1394video_
+		boost::shared_mutex mutex_leftMatQ_;
+		boost::shared_mutex mutex_rightMatQ_;
 		
 		//internal States
 		bool Terminate_;
+		bool dc1394Running_;//indicates which threads are alive
+		bool debayerRunning_;
+		bool copyLeftRunning_;
+		bool copyRightRunning_;
+		
+		std::string leftDir_;
+		std::string rightDir_;
+		
 		void processCommandQ();
 		std::shared_ptr<spdlog::logger> oLog;
 		FireWireState currentState_;
@@ -89,6 +104,10 @@ class FireWireManager
 		//Thread Functions
 		void mainLoop();
 		void getDC1394Frame();
+		void debayerFrame();
+		void copyLeftImages();
+		void copyRightImages();
+		void waitThreads();
 
 		
 };
