@@ -9,6 +9,7 @@ add_library(Manager
 	FireWireManager.cpp
 	PsuedoManager.cpp
 	VideoManager.cpp
+	Frame.cpp
 	)
 	
 target_link_libraries(Manager  

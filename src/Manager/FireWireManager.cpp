@@ -204,6 +204,7 @@ void FireWireManager::mainLoop()
 			//instantiate the Threads
 			dc1394Thread_= new boost::thread(&FireWireManager::getDC1394Frame,this);
 			debayerThread_= new boost::thread(&FireWireManager::debayerFrame,this);
+			copyLeftThread_=new boost::thread(&FireWireManager::copyLeftImages,this);
 
 			//Record command Received
 			WriteLock stateWLock(mutexState_);
@@ -363,31 +364,41 @@ void FireWireManager::debayerFrame()
 				dcQRLock.unlock();
 				if(totalMessages>0)
 				{
-					std::stringstream feedbackMsg;
+					Frame leftFrame,rightFrame;
 					WriteLock dcQWLock(mutex_dcQ_);
 					dc1394video_frame_t LatestFrame=dcQ_.front();
 					dcQ_.pop();
 					dcQWLock.unlock();
-					
-					feedbackMsg<<"debayer info [Timestamp - "<<LatestFrame.timestamp<<"]";
+
 					
 					short int * d_pt=(short int*)&bayerImage.data[0];
 					short int * s_pt=(short int*)&LatestFrame.image[0];		
 					memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
 					cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
-					free(s_pt);
+					
+					free(s_pt);//delete the memcopy
+					
+					std::stringstream imgdir;
+					imgdir<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+					left_img.copyTo(leftFrame.image_);
+					
+					leftFrame.fullDir_=imgdir.str();	
+					WriteLock leftQWLock(mutex_leftMatQ_);
+					leftMat_.push(leftFrame);
+					leftQWLock.unlock();
+					
+					imgdir.str("");
+					
 					
 					///Try copy
-					std::stringstream imageNameLeft;
-					imageNameLeft<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-					cv::imwrite(imageNameLeft.str(),left_img);
+				//	std::stringstream imageNameLeft;
+				//	imageNameLeft<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+				//	cv::imwrite(imageNameLeft.str(),left_img);
 					
-					std::stringstream imageNameRight;
-					imageNameRight<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-					cv::imwrite(imageNameRight.str(),right_img);
-					
-					//COPY INTO THE RIGHT MAT Q
-					oLog->info(feedbackMsg.str().c_str());
+				//	std::stringstream imageNameRight;
+				//	imageNameRight<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+				//	cv::imwrite(imageNameRight.str(),right_img);
+
 				}
 				break;
 			}
@@ -426,7 +437,22 @@ void FireWireManager::copyLeftImages()
 				leftCopyRLock.unlock();
 				if(totalMessages>0)
 				{
-						////
+					std::stringstream abc;
+					Frame currentFrame;
+					WriteLock leftcopyWLock(mutex_leftMatQ_);
+					abc<<leftMat_.size();
+
+					leftMat_.front().image_.copyTo(currentFrame.image_);
+					currentFrame.fullDir_= leftMat_.front().fullDir_;
+					abc<<" " << currentFrame.fullDir_;
+					
+					leftMat_.pop();
+										
+					leftcopyWLock.unlock();
+					
+					oLog->info(abc.str().c_str());
+					cv::imwrite(currentFrame.fullDir_,currentFrame.image_);
+
 				}
 				break;
 			}
@@ -439,7 +465,7 @@ void FireWireManager::copyLeftImages()
 			
 		}
 		
-		usleep(1000);
+		usleep(10);
 	}
 
 	WriteLock RunningLockClose(mutex_runningCopyLeft_);

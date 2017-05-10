@@ -8,9 +8,11 @@
 /////////////////////
 ///////Camera related Includes
 #include "Manager/FireWireSettings.hpp"
+#include "Manager/Frame.hpp"
 ////////////////////////
 ////////////////////
 #include <iostream>
+
 
 #include "spdlog/spdlog.h"
 
@@ -58,8 +60,8 @@ class FireWireManager
 		std::queue<FireWireCommands> commandQ_;//holds all the commands 
 					//image processing Queue
 		std::queue<dc1394video_frame_t> dcQ_;//
-		std::queue<cv::Mat> leftMat_;//
-		std::queue<cv::Mat> rightMat_;//
+		std::queue<Frame> leftMat_;//
+		std::queue<Frame> rightMat_;//
 
 		//Locks
 		boost::shared_mutex mutex_commandQ_;
@@ -75,6 +77,7 @@ class FireWireManager
 		boost::shared_mutex mutex_debayerQ_;
 		boost::shared_mutex mutex_leftMatQ_;
 		boost::shared_mutex mutex_rightMatQ_;
+		boost::shared_mutex mutex_stringStamp_;
 		
 		//internal States
 		bool Terminate_;
