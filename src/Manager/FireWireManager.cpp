@@ -303,12 +303,14 @@ void FireWireManager::getDC1394Frame()
 					BufferFrame.image=NULL;
 					
 					
+					
 					dc1394_deinterlace_stereo_frames(latestFrame,&BufferFrame,DC1394_STEREO_METHOD_INTERLACED);
 					//decode the video message into seperate left and right images (as opposed to mixed)
 					
 					WriteLock dcQLock(mutex_dcQ_);
 					dcQ_.push(BufferFrame);
 					dcQLock.unlock();
+					
 					oLog->info(feedbackMsg_.str().c_str());
 				}
 				else
@@ -378,17 +380,23 @@ void FireWireManager::debayerFrame()
 					
 					free(s_pt);//delete the memcopy
 					
-					std::stringstream imgdir;
-					imgdir<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+					std::stringstream ldir,rdir;
+					ldir<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
 					left_img.copyTo(leftFrame.image_);
 					
-					leftFrame.fullDir_=imgdir.str();	
+					leftFrame.fullDir_=ldir.str();	
 					WriteLock leftQWLock(mutex_leftMatQ_);
 					leftMat_.push(leftFrame);
 					leftQWLock.unlock();
+
+					rdir<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
+					right_img.copyTo(rightFrame.image_);
 					
-					imgdir.str("");
-					
+					rightFrame.fullDir_=rdir.str();	
+				//	WriteLock rightQWLock(mutex_rightMatQ_);
+				//	rightMat_.push(rightFrame);
+				//	rightQWLock.unlock();					
+									
 					
 					///Try copy
 				//	std::stringstream imageNameLeft;
@@ -472,6 +480,63 @@ void FireWireManager::copyLeftImages()
 	copyLeftRunning_=false;	
 	RunningLockClose.unlock();
 }
+
+void FireWireManager::copyRightImages()
+{
+	WriteLock RunningLock(mutex_runningCopyRight_);
+	copyRightRunning_=true;	
+	RunningLock.unlock();
+	oLog->info("Copy right Images Thread Activated");
+	
+	bool killLoop=false;
+	while(!killLoop)
+	{
+		FireWireState polledState=getCurrentState();
+		switch(polledState)
+		{
+			case Recording:
+			{
+				ReadLock rightCopyRLock(mutex_rightMatQ_);
+				int totalMessages=rightMat_.size();
+				rightCopyRLock.unlock();
+				if(totalMessages>0)
+				{
+					std::stringstream abc;
+					Frame currentFrame;
+					WriteLock rightcopyWLock(mutex_rightMatQ_);
+					abc<<rightMat_.size();
+
+					rightMat_.front().image_.copyTo(currentFrame.image_);
+					currentFrame.fullDir_= rightMat_.front().fullDir_;
+					abc<<" " << currentFrame.fullDir_;
+					
+					rightMat_.pop();
+										
+					rightcopyWLock.unlock();
+					
+					oLog->info(abc.str().c_str());
+					cv::imwrite(currentFrame.fullDir_,currentFrame.image_);
+
+				}
+				break;
+			}
+			case Closing:
+			{
+				oLog->info("Dc1394 Thread Terminate acknowledged");
+				killLoop=true;
+				break;
+			}
+			
+		}
+		
+		usleep(10);
+	}
+
+	WriteLock RunningLockClose(mutex_runningCopyRight_);
+	copyRightRunning_=false;	
+	RunningLockClose.unlock();
+}
+
 
 
 
