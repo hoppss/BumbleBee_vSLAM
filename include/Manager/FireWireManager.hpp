@@ -59,9 +59,7 @@ class FireWireManager
 		boost::thread *mainThread_;
 		std::queue<FireWireCommands> commandQ_;//holds all the commands 
 					//image processing Queue
-		std::queue<dc1394video_frame_t> dcQ_;//
-		std::queue<Frame> leftMat_;//
-		std::queue<Frame> rightMat_;//
+		std::queue<Frame> dcQ_;//
 
 		//Locks
 		boost::shared_mutex mutex_commandQ_;
@@ -70,21 +68,15 @@ class FireWireManager
 			//thread status locks
 		boost::shared_mutex mutex_runningDC1394_;
 		boost::shared_mutex mutex_runningDebayer_;
-		boost::shared_mutex mutex_runningCopyLeft_;
-		boost::shared_mutex mutex_runningCopyRight_;
 				//image processing Locks
 		boost::shared_mutex mutex_dcQ_;
 		boost::shared_mutex mutex_debayerQ_;
-		boost::shared_mutex mutex_leftMatQ_;
-		boost::shared_mutex mutex_rightMatQ_;
-		boost::shared_mutex mutex_stringStamp_;
+
 		
 		//internal States
 		bool Terminate_;
 		bool dc1394Running_;//indicates which threads are alive
 		bool debayerRunning_;
-		bool copyLeftRunning_;
-		bool copyRightRunning_;
 		
 		std::string leftDir_;
 		std::string rightDir_;
@@ -108,8 +100,6 @@ class FireWireManager
 		void mainLoop();
 		void getDC1394Frame();
 		void debayerFrame();
-		void copyLeftImages();
-		void copyRightImages();
 		void waitThreads();
 
 		

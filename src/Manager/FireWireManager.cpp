@@ -7,8 +7,6 @@ FireWireManager::FireWireManager(std::string configDir, std::string logDir,std::
 	//sets all the thread running flags to false
 	dc1394Running_=false;
 	debayerRunning_=false;
-	copyLeftRunning_=false;
-	copyRightRunning_=false;
 	
 	leftDir_=rootLeft;
 	rightDir_=rootRight;
@@ -36,8 +34,6 @@ FireWireManager::FireWireManager(std::string logDir,std::string rootLeft,std::st
 		//sets all the thread running flags to false
 	dc1394Running_=false;
 	debayerRunning_=false;
-	copyLeftRunning_=false;
-	copyRightRunning_=false;
 	
 	currentState_=Initializing;
 	
@@ -173,10 +169,7 @@ void FireWireManager::mainLoop()
 	
 	boost::thread *dc1394Thread_;		//copies from DMA ring buffer 
 	boost::thread *debayerThread_; //debayers and sets image Region of interests
-	boost::thread *copyLeftThread_;//copies to the hard drive
-	boost::thread *copyRightThread_;//copies to the hard drive
-	
-	
+
 	
 	oLog->info("entered Main Loop");
 	bool killLoop=false;
@@ -204,7 +197,6 @@ void FireWireManager::mainLoop()
 			//instantiate the Threads
 			dc1394Thread_= new boost::thread(&FireWireManager::getDC1394Frame,this);
 			debayerThread_= new boost::thread(&FireWireManager::debayerFrame,this);
-			copyLeftThread_=new boost::thread(&FireWireManager::copyLeftImages,this);
 
 			//Record command Received
 			WriteLock stateWLock(mutexState_);
@@ -275,6 +267,8 @@ void FireWireManager::getDC1394Frame()
 	RunningLock.unlock();
 	oLog->info("DC1394 Thread Activated");
 	
+	cv::Mat bayerImage=cv::Mat(1536,1024,CV_8UC1);
+	
 	bool killLoop=false;
 	while(!killLoop)
 	{
@@ -293,25 +287,25 @@ void FireWireManager::getDC1394Frame()
 				
 				if(deque==DC1394_SUCCESS)
 				{
-					std::stringstream feedbackMsg_;
-					//check if the frame has been corrupted
-					feedbackMsg_<<"Frame Info: [frames behind - "<<latestFrame->frames_behind<<"] [Buffer Id - "<< latestFrame->id<<"]";
-					feedbackMsg_<<" [timestamp - "<<latestFrame->timestamp<<"]";
+					Frame outframe_;
 					//copyMetaData
 					memcpy(&BufferFrame,latestFrame,sizeof(dc1394video_frame_t)); //copy MetaData
 					BufferFrame.allocated_image_bytes=0;
 					BufferFrame.image=NULL;
 					
-					
-					
 					dc1394_deinterlace_stereo_frames(latestFrame,&BufferFrame,DC1394_STEREO_METHOD_INTERLACED);
 					//decode the video message into seperate left and right images (as opposed to mixed)
 					
-					WriteLock dcQLock(mutex_dcQ_);
-					dcQ_.push(BufferFrame);
-					dcQLock.unlock();
+					short int * d_pt=(short int*)&bayerImage.data[0];
+					short int * s_pt=(short int*)&BufferFrame.image[0];		
+					memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
+					cv::cvtColor(bayerImage,outframe_.outputImage,CV_BayerBG2GRAY);//debayer into gray colour
+					outframe_.tstamp_=latestFrame->timestamp;
 					
-					oLog->info(feedbackMsg_.str().c_str());
+					WriteLock dcQLock(mutex_dcQ_);
+					dcQ_.push(outframe_);
+					dcQLock.unlock();
+					free(s_pt);
 				}
 				else
 				{
@@ -347,10 +341,8 @@ void FireWireManager::debayerFrame()
 	oLog->info("Debayer Thread Activated");
 	
 	
-	cv::Mat bayerImage=cv::Mat(1536,1024,CV_8UC1);
-	cv::Mat outputImage=cv::Mat(1536,1024,CV_8UC1);
-	cv::Mat left_img=outputImage(cv::Rect(0,768,1024,768));
-	cv::Mat right_img=outputImage(cv::Rect(0,0,1024,768));
+	//cv::Mat left_img=outputImage(cv::Rect(0,768,1024,768));
+	//cv::Mat right_img=outputImage(cv::Rect(0,0,1024,768));
 	
 	bool killLoop=false;
 	while(!killLoop)
@@ -366,47 +358,23 @@ void FireWireManager::debayerFrame()
 				dcQRLock.unlock();
 				if(totalMessages>0)
 				{
-					Frame leftFrame,rightFrame;
+					ReadLock dcQRLock(mutex_dcQ_);
+					cv::Mat left_img=dcQ_.front().outputImage(cv::Rect(0,768,1024,768));
+					cv::Mat right_img=dcQ_.front().outputImage(cv::Rect(0,0,1024,768));
+				
+					std::stringstream ldir,rdir;
+					ldir<<leftDir_<<"/"<<dcQ_.front().tstamp_<<".bmp";
+					rdir<<rightDir_<<"/"<<dcQ_.front().tstamp_<<".bmp";
+
+					cv::imwrite(ldir.str(),left_img);
+					cv::imwrite(rdir.str(),right_img);
+					
+					dcQRLock.unlock();
+					
 					WriteLock dcQWLock(mutex_dcQ_);
-					dc1394video_frame_t LatestFrame=dcQ_.front();
 					dcQ_.pop();
 					dcQWLock.unlock();
-
-					
-					short int * d_pt=(short int*)&bayerImage.data[0];
-					short int * s_pt=(short int*)&LatestFrame.image[0];		
-					memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
-					cv::cvtColor(bayerImage,outputImage,CV_BayerBG2GRAY);//debayer into gray colour
-					
-					free(s_pt);//delete the memcopy
-					
-					std::stringstream ldir,rdir;
-					ldir<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-					left_img.copyTo(leftFrame.image_);
-					
-					leftFrame.fullDir_=ldir.str();	
-					WriteLock leftQWLock(mutex_leftMatQ_);
-					leftMat_.push(leftFrame);
-					leftQWLock.unlock();
-
-					rdir<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-					right_img.copyTo(rightFrame.image_);
-					
-					rightFrame.fullDir_=rdir.str();	
-				//	WriteLock rightQWLock(mutex_rightMatQ_);
-				//	rightMat_.push(rightFrame);
-				//	rightQWLock.unlock();					
-									
-					
-					///Try copy
-				//	std::stringstream imageNameLeft;
-				//	imageNameLeft<<leftDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-				//	cv::imwrite(imageNameLeft.str(),left_img);
-					
-				//	std::stringstream imageNameRight;
-				//	imageNameRight<<rightDir_<<"/"<<LatestFrame.timestamp<<".bmp";
-				//	cv::imwrite(imageNameRight.str(),right_img);
-
+					oLog->info(ldir.str().c_str());
 				}
 				break;
 			}
@@ -417,127 +385,13 @@ void FireWireManager::debayerFrame()
 				break;
 			}
 		}
-		usleep(1000);
+		usleep(50);
 	}
 	
 	WriteLock RunningLockClose(mutex_runningDebayer_);
 	debayerRunning_=true;	
 	RunningLockClose.unlock();
 }
-
-void FireWireManager::copyLeftImages()
-{
-	WriteLock RunningLock(mutex_runningCopyLeft_);
-	copyLeftRunning_=true;	
-	RunningLock.unlock();
-	oLog->info("Copy Left Images Thread Activated");
-	
-	bool killLoop=false;
-	while(!killLoop)
-	{
-		FireWireState polledState=getCurrentState();
-		switch(polledState)
-		{
-			case Recording:
-			{
-				ReadLock leftCopyRLock(mutex_leftMatQ_);
-				int totalMessages=leftMat_.size();
-				leftCopyRLock.unlock();
-				if(totalMessages>0)
-				{
-					std::stringstream abc;
-					Frame currentFrame;
-					WriteLock leftcopyWLock(mutex_leftMatQ_);
-					abc<<leftMat_.size();
-
-					leftMat_.front().image_.copyTo(currentFrame.image_);
-					currentFrame.fullDir_= leftMat_.front().fullDir_;
-					abc<<" " << currentFrame.fullDir_;
-					
-					leftMat_.pop();
-										
-					leftcopyWLock.unlock();
-					
-					oLog->info(abc.str().c_str());
-					cv::imwrite(currentFrame.fullDir_,currentFrame.image_);
-
-				}
-				break;
-			}
-			case Closing:
-			{
-				oLog->info("Dc1394 Thread Terminate acknowledged");
-				killLoop=true;
-				break;
-			}
-			
-		}
-		
-		usleep(10);
-	}
-
-	WriteLock RunningLockClose(mutex_runningCopyLeft_);
-	copyLeftRunning_=false;	
-	RunningLockClose.unlock();
-}
-
-void FireWireManager::copyRightImages()
-{
-	WriteLock RunningLock(mutex_runningCopyRight_);
-	copyRightRunning_=true;	
-	RunningLock.unlock();
-	oLog->info("Copy right Images Thread Activated");
-	
-	bool killLoop=false;
-	while(!killLoop)
-	{
-		FireWireState polledState=getCurrentState();
-		switch(polledState)
-		{
-			case Recording:
-			{
-				ReadLock rightCopyRLock(mutex_rightMatQ_);
-				int totalMessages=rightMat_.size();
-				rightCopyRLock.unlock();
-				if(totalMessages>0)
-				{
-					std::stringstream abc;
-					Frame currentFrame;
-					WriteLock rightcopyWLock(mutex_rightMatQ_);
-					abc<<rightMat_.size();
-
-					rightMat_.front().image_.copyTo(currentFrame.image_);
-					currentFrame.fullDir_= rightMat_.front().fullDir_;
-					abc<<" " << currentFrame.fullDir_;
-					
-					rightMat_.pop();
-										
-					rightcopyWLock.unlock();
-					
-					oLog->info(abc.str().c_str());
-					cv::imwrite(currentFrame.fullDir_,currentFrame.image_);
-
-				}
-				break;
-			}
-			case Closing:
-			{
-				oLog->info("Dc1394 Thread Terminate acknowledged");
-				killLoop=true;
-				break;
-			}
-			
-		}
-		
-		usleep(10);
-	}
-
-	WriteLock RunningLockClose(mutex_runningCopyRight_);
-	copyRightRunning_=false;	
-	RunningLockClose.unlock();
-}
-
-
 
 
 
@@ -550,8 +404,6 @@ void FireWireManager::waitThreads()
 	bool ThreadsClosed=false;
 	bool localCopyDC1394;
 	bool localCopyDebayer;
-	bool localCopyLeft;
-	bool localCopyRight;
 	while(!ThreadsClosed)
 	{
 		//lock each state and copy them
@@ -562,17 +414,10 @@ void FireWireManager::waitThreads()
 		ReadLock debLock(mutex_runningDebayer_);
 		localCopyDebayer=debayerRunning_;
 		debLock.unlock();
-		
-		ReadLock leftLock(mutex_runningCopyLeft_);
-		localCopyLeft=copyLeftRunning_;
-		leftLock.unlock();
-		
-		ReadLock rightLock(mutex_runningCopyRight_);
-		localCopyRight=copyRightRunning_;
-		rightLock.unlock();
+
 		
 		//if they are all false, then unpause
-		if(!localCopyDC1394&&!localCopyDebayer&&!localCopyLeft&&!localCopyRight)
+		if(!localCopyDC1394&&!localCopyDebayer)
 		{
 			ThreadsClosed=true;
 		}
