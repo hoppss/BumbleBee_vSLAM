@@ -268,6 +268,7 @@ void FireWireManager::getDC1394Frame()
 	oLog->info("DC1394 Thread Activated");
 	
 	cv::Mat bayerImage=cv::Mat(1536,1024,CV_8UC1);
+	uint64_t prev=0;
 	
 	bool killLoop=false;
 	while(!killLoop)
@@ -277,6 +278,7 @@ void FireWireManager::getDC1394Frame()
 		{
 			case Recording:
 			{
+				std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 				std::stringstream feedbackMsg_;
 				//copy from DMA ring buffer to dcQ_ 
 				dc1394video_frame_t * latestFrame;
@@ -287,6 +289,7 @@ void FireWireManager::getDC1394Frame()
 				
 				if(deque==DC1394_SUCCESS)
 				{
+					std::stringstream msg_;
 					Frame outframe_;
 					//copyMetaData
 					memcpy(&BufferFrame,latestFrame,sizeof(dc1394video_frame_t)); //copy MetaData
@@ -301,6 +304,9 @@ void FireWireManager::getDC1394Frame()
 					memcpy(d_pt,s_pt,1536*1024);//copy dc1394 image data into mat structure
 					cv::cvtColor(bayerImage,outframe_.outputImage,CV_BayerBG2GRAY);//debayer into gray colour
 					outframe_.tstamp_=latestFrame->timestamp;
+					msg_<<outframe_.tstamp_<< "framesBehind - "<<latestFrame->frames_behind;
+					
+					oLog->info(msg_.str().c_str());
 					
 					WriteLock dcQLock(mutex_dcQ_);
 					dcQ_.push(outframe_);
@@ -312,7 +318,13 @@ void FireWireManager::getDC1394Frame()
 					oLog->warn("Deque failed");
 				}
 				
+				std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+				feedbackMsg_<<"Receive  Duration: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();					
+				oLog->info(feedbackMsg_.str().c_str());	
+	
 				enque=dc1394_capture_enqueue(camera_,latestFrame);
+				
+
 				break;
 			}
 			case Closing:
@@ -358,6 +370,10 @@ void FireWireManager::debayerFrame()
 				dcQRLock.unlock();
 				if(totalMessages>0)
 				{
+					std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+					std::stringstream m;
+					m<<"StartingbufferSize: "<<totalMessages;
+
 					ReadLock dcQRLock(mutex_dcQ_);
 					cv::Mat left_img=dcQ_.front().outputImage(cv::Rect(0,768,1024,768));
 					cv::Mat right_img=dcQ_.front().outputImage(cv::Rect(0,0,1024,768));
@@ -365,11 +381,19 @@ void FireWireManager::debayerFrame()
 					std::stringstream ldir,rdir;
 					ldir<<leftDir_<<"/"<<dcQ_.front().tstamp_<<".bmp";
 					rdir<<rightDir_<<"/"<<dcQ_.front().tstamp_<<".bmp";
-
+					oLog->info("startingLeftCopy");
 					cv::imwrite(ldir.str(),left_img);
+					oLog->info("startingRightCopy");
 					cv::imwrite(rdir.str(),right_img);
-					
+					oLog->info("FinishedCopy");
 					dcQRLock.unlock();
+					
+					std::chrono::time_point<std::chrono::system_clock> end = std::chrono::system_clock::now();
+					
+
+					
+					m<<"  Duration: "<<std::chrono::duration_cast<std::chrono::milliseconds>(end - now).count();					
+					oLog->info(m.str().c_str());	
 					
 					WriteLock dcQWLock(mutex_dcQ_);
 					dcQ_.pop();

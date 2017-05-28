@@ -100,7 +100,8 @@ void FireWireSettings::setBright(std::vector< dc1394error_t >& err, dc1394camera
 
 void FireWireSettings::setExposure(std::vector< dc1394error_t >& err, dc1394camera_t* camera)
 {
-	if(autoExpose_)
+	err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_OFF));
+	/*if(autoExpose_)
 	{
 		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
 		err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_AUTO));
@@ -118,7 +119,7 @@ void FireWireSettings::setExposure(std::vector< dc1394error_t >& err, dc1394came
 		{
 			err.push_back(DC1394_FAILURE);
 		}
-	}
+	}*/
 }
 
 
