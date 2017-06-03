@@ -19,6 +19,7 @@ target_link_libraries(Manager
 	ncurses
 	${DC1394_LIBRARIES}
 	${OpenCV_LIBRARIES}
+	DataStructures
 	)
 
 

@@ -6,3 +6,11 @@ add_executable(Record
 target_link_libraries(Record
 	Manager
 	)
+	
+add_executable(PlayBack
+	loadFromFile.cpp
+	)
+	
+target_link_libraries(PlayBack
+	Manager
+	)
