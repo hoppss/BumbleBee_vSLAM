@@ -7,7 +7,7 @@
 #include <opencv2/imgproc.hpp>
 
 #define DEFAULT_FIREWIRESETTINGS_ "/home/ubuntu/ConfigurationFiles/RecordingSettings.xml"
-
+#include <iostream>
 
 //////////////////////
 ////////Camera Settings Definitions
@@ -20,6 +20,8 @@
 #define brightMIN 0
 #define gainMAX 1023
 #define gainMIN 325 
+#define exposureMIN 2
+#define exposureMAX 800
 //Taken from Coriander GUI
 
 
@@ -40,7 +42,7 @@ class FireWireSettings
 		uint32_t ubal_;
 		uint32_t vbal_;
 		uint32_t brightness_; //always balance the image
-		float shutter_;
+		uint32_t shutter_;
 		uint32_t gain_;
 		int n_buffer;
 		
@@ -59,6 +61,7 @@ class FireWireSettings
 		 void setShutter(std::vector<dc1394error_t> &err,dc1394camera_t *camera);
 		 void setGain(std::vector<dc1394error_t> &err,dc1394camera_t *camera);
  		 void setBright(std::vector<dc1394error_t> &err,dc1394camera_t *camera);
+		 std::string getCameraConfig(dc1394camera_t *camera);
 		 friend class FireWireManager;
 };
 	

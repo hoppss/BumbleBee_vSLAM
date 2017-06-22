@@ -10,7 +10,7 @@ FireWireSettings::FireWireSettings()
 	whiteBalance_=true;
 	
 	brightness_=1;
-	shutter_=0.01;
+	shutter_=100;
 	gain_=600;
 	ubal_=63;
 	vbal_=20;
@@ -32,7 +32,8 @@ void FireWireSettings::read(const cv::FileNode& node)
 	node["AutoGain"]>>autoGain_;
 	node["AutoWhiteBalance"]>>whiteBalance_;
 	node["DMA_BufferSize"]>>n_buffer;
-	node["ShutterSpeed"]>>shutter_;
+	node["ShutterSpeed"]>>temp;
+	shutter_=static_cast<uint32_t>(temp);
 	node["RAW_gain_val"]>>temp;
 	gain_=static_cast<uint32_t>(temp);
 	node["RAW_exposure_val"]>>temp;
@@ -56,7 +57,7 @@ void FireWireSettings::write(cv::FileStorage& fs) const
 	fs<<"AutoGain"<<autoGain_;
 	fs<<"AutoWhiteBalance"<<whiteBalance_;
 	fs<<"DMA_BufferSize"<<n_buffer;
-	fs<<"ShutterSpeed"<<shutter_;
+	fs<<"ShutterSpeed"<<(int)shutter_;
 	fs<<"RAW_gain_val"<<(int)gain_;
 	fs<<"RAW_exposure_val"<<(int)expose_;
 	fs<<"RAW_vBalance_val"<<(int)vbal_;
@@ -72,11 +73,9 @@ void FireWireSettings::write(cv::FileStorage& fs) const
 
 void FireWireSettings::setBasicSettings(std::vector< dc1394error_t >& err, dc1394camera_t* camera)
 {
-	err.push_back(dc1394_video_set_transmission(camera,DC1394_OFF));
 	err.push_back(dc1394_video_set_iso_speed(camera, iso_speed));
 	err.push_back(dc1394_video_set_mode(camera,video_mode));
 	err.push_back(dc1394_video_set_framerate(camera,frame_rate));
-	err.push_back(dc1394_capture_setup(camera,n_buffer,DC1394_CAPTURE_FLAGS_DEFAULT));
 }
 
 
@@ -95,31 +94,13 @@ void FireWireSettings::setBright(std::vector< dc1394error_t >& err, dc1394camera
 		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_ON));
 		err.push_back(dc1394_feature_set_mode(camera,DC1394_FEATURE_BRIGHTNESS,DC1394_FEATURE_MODE_MANUAL));
 		err.push_back(dc1394_feature_set_value(camera,DC1394_FEATURE_BRIGHTNESS,brightness_));	
+		err.push_back(dc1394_feature_set_absolute_value(camera,DC1394_FEATURE_BRIGHTNESS,brightness_));
 	}
 }
 
 void FireWireSettings::setExposure(std::vector< dc1394error_t >& err, dc1394camera_t* camera)
 {
 	err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_OFF));
-	/*if(autoExpose_)
-	{
-		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
-		err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_AUTO));
-	}
-	else
-	{
-		//set mode
-		if((expose_<=expoMAX)&&(expose_>=expoMIN))
-		{
-			err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_EXPOSURE,DC1394_ON));
-			err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_EXPOSURE,DC1394_FEATURE_MODE_MANUAL));
-			err.push_back(dc1394_feature_set_value(camera, DC1394_FEATURE_EXPOSURE,expose_));
-		}
-		else
-		{
-			err.push_back(DC1394_FAILURE);
-		}
-	}*/
 }
 
 
@@ -158,7 +139,18 @@ void FireWireSettings::setShutter(std::vector< dc1394error_t >& err, dc1394camer
 	{
 		err.push_back(dc1394_feature_set_power(camera,DC1394_FEATURE_SHUTTER,DC1394_ON));
 		err.push_back(dc1394_feature_set_mode(camera, DC1394_FEATURE_SHUTTER,DC1394_FEATURE_MODE_MANUAL));
-		err.push_back(dc1394_feature_set_absolute_value(camera,  DC1394_FEATURE_SHUTTER,shutter_));
+		
+		uint32_t shutterValue=shutter_;
+		if(shutterValue<exposureMIN)
+		{
+			shutterValue=exposureMIN;
+		}
+		if(shutterValue>exposureMAX)
+		{
+			shutterValue=exposureMAX;
+		}
+		err.push_back(dc1394_feature_set_value(camera,  DC1394_FEATURE_SHUTTER,shutterValue));
+	//	err.push_back(dc1394_feature_set_absolute_value(camera,  DC1394_FEATURE_SHUTTER,shutterValue));
 	}
 }
 

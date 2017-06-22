@@ -6,8 +6,6 @@ namespace stereo
 BumbleDataSet::BumbleDataSet(std::string root)
 {
 	rootDir_=root;
-	leftDir_=rootDir_+"/data/left";
-	rightDir_=rootDir_+"/data/right";
 	populateFrameList();
 }
 
@@ -49,34 +47,52 @@ std::vector< std::string > BumbleDataSet::getDirList(std::string dir)
 
 void BumbleDataSet::populateFrameList()
 {
-	std::vector<std::string> leftDirect;
+	std::vector<std::string> ImageFiles;
 	// cycle through the left camera + right camera directory
 
-	leftDirect=getDirList(leftDir_);
+	ImageFiles=getDirList(rootDir_);
 	//add left and right images to frame object + push to queue
-	std::vector<std::string>::iterator endit=leftDirect.end();
+	std::vector<std::string>::iterator endit=ImageFiles.end();
 	
 	
-	for(std::vector<std::string>::iterator it=leftDirect.begin();it!=endit;++it)
+	for(std::vector<std::string>::iterator it=ImageFiles.begin();it!=endit;++it)
 	{
 			BumbleFrame newFrame;
-			newFrame.leftMeta_.fullDir_=*it;
-			boost::filesystem::path leftName(newFrame.leftMeta_.fullDir_);
-			newFrame.leftMeta_.fileName_=leftName.filename().string();
-			
-			newFrame.rightMeta_.fileName_=newFrame.leftMeta_.fileName_+"/"+leftName.filename().string();
-			newFrame.rightMeta_.fileName_=rightDir_+"/"+newFrame.leftMeta_.fileName_;
-
+			newFrame.Meta_.fullDir_=*it;
+			boost::filesystem::path Name(newFrame.Meta_.fullDir_);
+			newFrame.Meta_.fileName_=Name.filename().string();
 			frameReferences_.push_back(newFrame);
 	}
-	
-	//sort in ascending order
-	std::sort(frameReferences_.begin(),frameReferences_.end(), [ ]( const BumbleFrame& lhs, const BumbleFrame& rhs )
+
+}
+
+void BumbleDataSet::playback()
+{
+	currentFrame_=frameReferences_.begin();
+  cv::namedWindow( "Disp", cv::WINDOW_NORMAL );// Create a window for display.
+	 cv::namedWindow( "l", cv::WINDOW_NORMAL );// Create a window for display.
+	  cv::namedWindow( "R", cv::WINDOW_NORMAL );// Create a window for display.
+	 
+	while(currentFrame_!=frameReferences_.end())
 	{
-		return lhs.leftMeta_.getTimeStamp() < rhs.leftMeta_.getTimeStamp();
-	});
+		++currentFrame_;
+		
+		cv::Mat left,right,both;
+		(*currentFrame_).getBothImages(both);
+		(*currentFrame_).getLeftImage(left);
+		(*currentFrame_).getRightImage(right);
+		
+	//	cv::Mat leftImg=cv::imread((*currentFrame_).Meta_.fullDir_, CV_LOAD_IMAGE_GRAYSCALE);
+		cv::imshow("Disp",both);
+		cv::imshow("l",left);
+		cv::imshow("R",right);
+		cv::waitKey(50);
+	}
+	
+	cv::destroyWindow("Disp");
 	
 }
+
 
 
 	

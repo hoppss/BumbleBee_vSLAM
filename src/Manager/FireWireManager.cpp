@@ -352,10 +352,6 @@ void FireWireManager::debayerFrame()
 	RunningLock.unlock();
 	oLog->info("Debayer Thread Activated");
 	
-	
-	//cv::Mat left_img=outputImage(cv::Rect(0,768,1024,768));
-	//cv::Mat right_img=outputImage(cv::Rect(0,0,1024,768));
-	
 	bool killLoop=false;
 	while(!killLoop)
 	{
@@ -490,6 +486,8 @@ bool FireWireManager::InitializeDC1394()
 				oLog->info(msg_.str().c_str());
 				if(camera_)
 				{
+					dc1394_video_set_transmission(camera_, DC1394_OFF );
+					dc1394_capture_stop(camera_ );
 					Success_=true;		
 				}
 			}
@@ -506,6 +504,9 @@ bool FireWireManager::InitializeDC1394()
 
 void FireWireManager::closeCamera()
 {
+	dc1394_video_set_transmission(camera_,DC1394_OFF);
+	dc1394_capture_stop(camera_);
+	dc1394_reset_bus(camera_);
 	dc1394_camera_free(camera_);
 	dc1394_free(init_1394_);
 }
@@ -518,6 +519,10 @@ bool FireWireManager::UpdateSettings()
 		oLog->critical("Update Settings Failed to take hold as DC1394 has not been initiated");
 		return false;
 	}
+	//stop all previous transmissions
+	dc1394_video_set_transmission(camera_, DC1394_OFF );
+	dc1394_capture_stop(camera_);
+	
 	//attempt to change all the settings at once with new values
 	std::vector<dc1394error_t> basic_e,expose_e,balance_e,shutter_e,gain_e,bright_e;
 	//holds results of each error code, if any of the vectors are a failure, immediate exit and return false
@@ -539,11 +544,12 @@ bool FireWireManager::UpdateSettings()
 						cameraConfig_.setWBalance(balance_e,camera_);
 						if(cameraConfig_.checkUpdated(balance_e))
 						{
+							dc1394_capture_setup(camera_,cameraConfig_.n_buffer,DC1394_CAPTURE_FLAGS_DEFAULT);
 							return true;
 						}
 						else
 						{
-							oLog->error("Shutter Speed Settings failed to configure");
+							oLog->error("Wbalance failed to configure");
 							return false;
 						}
 					}

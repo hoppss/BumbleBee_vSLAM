@@ -9,11 +9,12 @@ ImageMetaData::ImageMetaData()
 
 int ImageMetaData::getTimeStamp() const
 {
-	std::string numberString;
-	numberString=fileName_.substr(0,fileName_.length()-4);
+	//TODO
+//	std::string numberString;
+//	numberString=fileName_.substr(0,fileName_.length()-4);
 	//std::cout<<fileName_<<" "<<numberString<<std::endl;
-	return std::stoi(numberString);
-	
+//	return std::stoi(numberString);
+	return 0;
 }
 
 	
