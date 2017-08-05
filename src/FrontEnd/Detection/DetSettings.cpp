@@ -57,6 +57,12 @@ void DetSettings::setInternalSettings(int threshold, int octaves, int scale)
 }
 
 
+std::string DetSettings::getStringName()
+{
+
+}
+
+
 
 	
 	

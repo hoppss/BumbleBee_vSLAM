@@ -1,7 +1,7 @@
 #ifndef SINGLE_OUTPUT_HEADER_HPP
 #define SINGLE_OUTPUT_HEADER_HPP
 
-#include <highgui.h>
+#include <highgui.hpp>
 
 
 #include <opencv2/calib3d.hpp>

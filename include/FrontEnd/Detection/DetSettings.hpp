@@ -2,6 +2,7 @@
 #define DETECTOR_BASE_SETTINGS_HPP
 
 #include <opencv2/features2d.hpp>
+#include <stdio.h>
 
 namespace stereo
 {
@@ -19,6 +20,7 @@ class DetSettings
 			virtual void setAdjustSettings(float l_rate,int min_step);
 			virtual void getFeatures(cv::Mat image, std::vector<cv::KeyPoint> &output);
 			virtual void setBounds();
+			virtual std::string getStringName();
 	protected:
 		float learning_rate_;
 		int minimum_step_;

@@ -9,6 +9,8 @@ add_library(Calibration
 	
 target_link_libraries(Calibration  
 	DataStructures
+	opencv_calib3d
+	opencv_imgproc
 	)
 
 

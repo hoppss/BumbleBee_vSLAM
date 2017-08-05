@@ -7,6 +7,8 @@ BumbleDataSet::BumbleDataSet(std::string root)
 {
 	rootDir_=root;
 	populateFrameList();
+	current_frame_=frameReferences_.begin();
+	++current_frame_;
 }
 
 std::vector< std::string > BumbleDataSet::getFilesList(std::string dir)
@@ -23,6 +25,7 @@ std::vector< std::string > BumbleDataSet::getFilesList(std::string dir)
 			files.push_back(tempPath.filename().string());
 		}
 	}
+	
 	return files;
 }
 
@@ -32,14 +35,14 @@ std::vector< std::string > BumbleDataSet::getDirList(std::string dir)
 	boost::filesystem::directory_iterator end_itr,itr(dir);
 	std::vector<std::string> files;
 	for (itr; itr != end_itr; ++itr)
-  {
-		// If it's not a directory, list it. If you want to list directories too, just remove this check.
-    if (boost::filesystem::is_regular_file(itr->path()))
+	{		// If it's not a directory, list it. If you want to list directories too, just remove this check.
+		if (boost::filesystem::is_regular_file(itr->path()))
 		{
-
 			files.push_back(itr->path().string());
 		}
 	}
+	//sort into descending order
+	std::sort(files.begin(),files.end());
 	return files;
 }
 
@@ -66,14 +69,76 @@ void BumbleDataSet::populateFrameList()
 
 }
 
-void BumbleDataSet::playback()
+
+cv::Mat BumbleDataSet::getCurrent()
 {
-	currentFrame_=frameReferences_.begin();
-  cv::namedWindow( "Disp", cv::WINDOW_NORMAL );// Create a window for display.
-	 cv::namedWindow( "l", cv::WINDOW_NORMAL );// Create a window for display.
-	  cv::namedWindow( "R", cv::WINDOW_NORMAL );// Create a window for display.
+	cv::Mat input,output;
+	(*current_frame_).getBothImages(input);
+	cv::cvtColor(input, output, cv::COLOR_BayerBG2RGB);
+	cv::cvtColor(output, output, cv::COLOR_RGB2GRAY);
+	std::cout<<(*current_frame_).Meta_.fileName_<<std::endl;
+	return output;
+}
+
+
+cv::Mat BumbleDataSet::getCurrentLeft()
+{
+	cv::Mat input,output;
+	(*current_frame_).getLeftImage(input);
+	cv::cvtColor(input, output, cv::COLOR_BayerBG2RGB);
+	//cv::cvtColor(output, output, cv::COLOR_RGB2GRAY);
+	return output;
+}
+
+cv::Mat BumbleDataSet::getCurrentRight()
+{
+	cv::Mat input,output;
+	(*current_frame_).getRightImage(input);
+	cv::cvtColor(input, output, cv::COLOR_BayerBG2RGB);
+	cv::cvtColor(output, output, cv::COLOR_RGB2GRAY);
+	return output;
+}
+
+
+bool BumbleDataSet::decrementFrame()
+{
+	--current_frame_;
+	if(current_frame_!=frameReferences_.begin())
+	{
+		return true;
+	}
+	else
+	{
+		++current_frame_;
+		return false;
+	}
+}
+
+bool BumbleDataSet::incrementFrame()
+{
+
+	++current_frame_;
+	if(current_frame_!=frameReferences_.end())
+	{
+		return true;
+	}
+	else
+	{
+		--current_frame_;
+		return false;
+	}
+}
+
+
+
+
+
+/*	currentFrame_=ptrData_->frameReferences_.begin();
+	cv::namedWindow( "Disp", cv::WINDOW_NORMAL );// Create a window for display.
+	cv::namedWindow( "l", cv::WINDOW_NORMAL );// Create a window for display.
+	cv::namedWindow( "R", cv::WINDOW_NORMAL );// Create a window for display.
 	 
-	while(currentFrame_!=frameReferences_.end())
+	while(currentFrame_!=ptrData_->frameReferences_.begin())
 	{
 		++currentFrame_;
 		
@@ -82,16 +147,15 @@ void BumbleDataSet::playback()
 		(*currentFrame_).getLeftImage(left);
 		(*currentFrame_).getRightImage(right);
 		
-	//	cv::Mat leftImg=cv::imread((*currentFrame_).Meta_.fullDir_, CV_LOAD_IMAGE_GRAYSCALE);
 		cv::imshow("Disp",both);
 		cv::imshow("l",left);
 		cv::imshow("R",right);
-		cv::waitKey(50);
+		cv::waitKey(delayTime);
 	}
 	
-	cv::destroyWindow("Disp");
-	
-}
+	cv::destroyWindow("Disp");*/
+
+
 
 
 

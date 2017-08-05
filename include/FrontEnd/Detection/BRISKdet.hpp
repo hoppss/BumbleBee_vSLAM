@@ -26,6 +26,7 @@ class BRISKdet: public DetSettings
 		bool increment(); //decrement parameters
 		bool decrement();
 		void getFeatures(cv::Mat image, std::vector<cv::KeyPoint> &output);
+		std::string getStringName();
 };
 	
 }

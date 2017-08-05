@@ -5,7 +5,7 @@ BRISKdet::BRISKdet() : DetSettings()
 {
 	threshold_=30;
 	octaves_=3;
-	pattern_scale_=1.0;
+	pattern_scale_=1.1;
 	min_thresh_=1;
 	max_thresh_=250;
 	min_octaves_=2;
@@ -88,6 +88,16 @@ void BRISKdet::setAdjustSettings(float l_rate, int min_step)
 	learning_rate_=l_rate;
 	minimum_step_=min_step;
 }
+
+
+std::string BRISKdet::getStringName()
+{
+	std::stringstream outName;
+	outName.str("");
+	outName<<"BRISK_DET_"<<threshold_<<"__"<<octaves_<<"__"<<pattern_scale_;
+	return outName.str();
+}
+
 
 
 

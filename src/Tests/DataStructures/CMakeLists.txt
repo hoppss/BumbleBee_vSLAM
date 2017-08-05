@@ -8,13 +8,19 @@ add_executable(OverallTest
 	
 target_link_libraries(OverallTest
 	DataStructures
+	FrontEnd
 )
 
 target_include_directories(OverallTest PUBLIC
 		${BUILD_INCLUDE_DIR}
 		)
 
-#target_include_directories(OverallTest PUBLIC
-#	${BUILD_INCLUDE_DIR}
-#	)
-	#	targ
+add_executable(playback 
+	streamTest.cpp
+	)
+	
+target_link_libraries(playback
+	DataStructures
+	FrontEnd
+	)
+	

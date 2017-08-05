@@ -23,8 +23,8 @@ class BumbleDataSet
 		/*--------------
 		 * Playback variables
 		 * --------------*/
-		int delayTime=500;
-		std::vector<BumbleFrame>::iterator currentFrame_;
+		std::vector<BumbleFrame>::iterator current_frame_;
+		int delayTime=1000/15;
 		/*----------------
 		 * DataSet input variables
 		 * --------------*/
@@ -34,9 +34,14 @@ class BumbleDataSet
 		std::vector<std::string> getFilesList(std::string dir);
 		std::vector<std::string> getDirList(std::string dir);
 		std::vector<BumbleFrame> frameReferences_;
+		//TODO get times between frames
 	public:
 		BumbleDataSet(std::string root);
-		void playback();
+		cv::Mat getCurrent();
+		cv::Mat getCurrentLeft();
+		cv::Mat getCurrentRight();
+		bool incrementFrame();
+		bool decrementFrame();
 };
 
 	
